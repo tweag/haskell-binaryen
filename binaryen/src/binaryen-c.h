@@ -584,6 +584,14 @@ BINARYEN_API BinaryenOp BinaryenSwizzleVec8x16(void);
 
 BINARYEN_REF(Expression);
 
+BINARYEN_API BinaryenExpressionRef BinaryenConstInt32(BinaryenModuleRef module, int32_t x);
+BINARYEN_API BinaryenExpressionRef BinaryenConstInt64(BinaryenModuleRef module, int64_t x);
+BINARYEN_API BinaryenExpressionRef BinaryenConstFloat32(BinaryenModuleRef module, float x);
+BINARYEN_API BinaryenExpressionRef BinaryenConstFloat64(BinaryenModuleRef module, double x);
+BINARYEN_API BinaryenExpressionRef BinaryenConstVec128(BinaryenModuleRef module, const uint8_t x[16]);
+BINARYEN_API BinaryenExpressionRef BinaryenConstFloat32Bits(BinaryenModuleRef module, int32_t x);
+BINARYEN_API BinaryenExpressionRef BinaryenConstFloat64Bits(BinaryenModuleRef module, int64_t x);
+
 // Block: name can be NULL. Specifying BinaryenUndefined() as the 'type'
 //        parameter indicates that the block's type shall be figured out
 //        automatically instead of explicitly providing it. This conforms
@@ -1410,6 +1418,9 @@ BinaryenModuleAllocateAndWrite(BinaryenModuleRef module,
 // char* with malloc(), and expects the user to free() them manually
 // once not needed anymore.
 BINARYEN_API char* BinaryenModuleAllocateAndWriteText(BinaryenModuleRef module);
+
+BINARYEN_API void BinaryenModuleAllocateAndWriteMut(BinaryenModuleRef module, const char* sourceMapUrl,
+  void** binary, size_t* binaryBytes, char** sourceMap);
 
 // Deserialize a module from binary form.
 BINARYEN_API BinaryenModuleRef BinaryenModuleRead(char* input,
