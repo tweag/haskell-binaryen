@@ -1,3 +1,4 @@
 resolver: lts-14.19
 packages:
   - binaryen-hs
+  - binaryen-hs-pure

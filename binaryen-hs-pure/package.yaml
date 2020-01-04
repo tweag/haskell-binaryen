@@ -1,0 +1,20 @@
+name: binaryen-hs-pure
+version: 0.0.1
+category: Compiler
+stability: alpha
+maintainer: Shao Cheng <cheng.shao@tweag.io>
+copyright: (c) 2020 Tweag I/O
+license: BSD3
+github: tweag/binaryen
+
+extra-source-files:
+  - CHANGELOG.md
+  - LICENSE
+
+ghc-options: -Wall
+
+dependencies:
+  - base
+
+library:
+  source-dirs: src
