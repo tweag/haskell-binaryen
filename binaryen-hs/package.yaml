@@ -1,17 +1,16 @@
-name: binaryen
+name: binaryen-hs
 version: 0.0.1
 category: Compiler
 stability: alpha
 maintainer: Shao Cheng <cheng.shao@tweag.io>
-copyright: (c) 2018 Tweag I/O
+copyright: (c) 2020 Tweag I/O
 license: BSD3
-github: tweag/asterius
+github: tweag/binaryen
 
 extra-source-files:
   - binaryen/**/**
   - CHANGELOG.md
   - LICENSE
-  - README.md
 
 custom-setup:
   dependencies:
@@ -30,5 +29,5 @@ dependencies:
   - base
 
 library:
-  generated-exposed-modules: Paths_binaryen
+  generated-exposed-modules: Paths_binaryen_hs
   source-dirs: src
