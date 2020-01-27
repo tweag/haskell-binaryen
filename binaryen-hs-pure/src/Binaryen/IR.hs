@@ -13,6 +13,15 @@ module Binaryen.IR
     MemoryImport (..),
     GlobalImport (..),
     EventImport (..),
+    FunctionExport (..),
+    TableExport (..),
+    MemoryExport (..),
+    GlobalExport (..),
+    EventExport (..),
+    Global (..),
+    Event (..),
+    FunctionTable (..),
+    Memory (..)
   )
 where
 
@@ -589,38 +598,91 @@ data Expression f
 
 data Function f
   = Function
-      { functionParamType, functionResultType :: f (Type f),
+      { functionName :: !B.ByteString,
+        functionParamType, functionResultType :: f (Type f),
         functionVarTypes :: [f (Type f)],
         functionBody :: f (Expression f)
       }
 
 data FunctionImport f
   = FunctionImport
-      { functionImportExternalModuleName, functionImportExternalBaseName :: !B.ByteString,
+      { functionImportInternalName, functionImportExternalModuleName, functionImportExternalBaseName :: !B.ByteString,
         functionImportParamType, functionImportResultType :: f (Type f)
       }
 
 data TableImport f
   = TableImport
-      { tableImportExternalModuleName, tableImportExternalBaseName :: !B.ByteString
+      { tableImportInternalName, tableImportExternalModuleName, tableImportExternalBaseName :: !B.ByteString
       }
 
 data MemoryImport f
   = MemoryImport
-      { memoryImportExternalModuleName, memoryImportExternalBaseName :: !B.ByteString,
+      { memoryImportInternalName, memoryImportExternalModuleName, memoryImportExternalBaseName :: !B.ByteString,
         memoryImportShared :: !Bool
       }
 
 data GlobalImport f
   = GlobalImport
-      { globalImportExternalModuleName, globalImportExternalBaseName :: !B.ByteString,
+      { globalImportInternalName, globalImportExternalModuleName, globalImportExternalBaseName :: !B.ByteString,
         globalImportType :: f (Type f),
         globalImportMutable :: !Bool
       }
 
 data EventImport f
   = EventImport
-      { eventImportExternalModuleName, eventImportExternalBaseName :: !B.ByteString,
+      { eventImportInternalName, eventImportExternalModuleName, eventImportExternalBaseName :: !B.ByteString,
         eventImportAttribute :: !F.Word32,
         eventImportParamType, eventImportResultType :: f (Type f)
       }
+
+data FunctionExport f
+  = FunctionExport
+      { functionExportInternalName, functionExportExternalName :: !B.ByteString
+      }
+
+data TableExport f
+  = TableExport
+      { tableExportInternalName, tableExportExternalName :: !B.ByteString
+      }
+
+data MemoryExport f
+  = MemoryExport
+      { memoryExportInternalName, memoryExportExternalName :: !B.ByteString
+      }
+
+data GlobalExport f
+  = GlobalExport
+      { globalExportInternalName, globalExportExternalName :: !B.ByteString
+      }
+
+data EventExport f
+  = EventExport
+      { eventExportInternalName, eventExportExternalName :: !B.ByteString
+      }
+
+data Global f
+  = Global
+      { globalName :: !B.ByteString,
+        globalType :: f (Type f),
+        globalMutable :: !Bool,
+        globalInit :: f (Expression f)
+      }
+
+data Event f
+  = Event
+      { eventName :: !B.ByteString,
+        eventAttribute :: !F.Word32,
+        eventParamType, eventResultType :: f (Type f)
+      }
+
+data FunctionTable f
+  = FunctionTable
+      { functionTableInitial, functionTableMaximum :: !F.Word32,
+        functionTableNames :: [B.ByteString],
+        functionTableOffset :: f (Expression f)
+      }
+
+data Memory f = Memory {
+  memoryInitial, memoryMaximum :: !F.Word32,
+  memoryExportName :: Maybe B.ByteString
+}
