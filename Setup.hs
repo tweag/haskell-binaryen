@@ -9,6 +9,7 @@ import Distribution.Types.LocalBuildInfo
 import System.Directory
 import System.FilePath
 
+
 main :: IO ()
 main =
   defaultMainWithHooks
@@ -20,7 +21,10 @@ main =
           let verbosity = fromFlag (configVerbosity (configFlags lbi))
               binaryen_builddir = binaryenBuildDir lbi
               run prog args =
-                let Just conf_prog = lookupProgram prog (withPrograms lbi)
+                let conf_prog = case lookupProgram prog (withPrograms lbi) of
+                                  Just theProg -> theProg
+                                  Nothing -> error $ "Cannot find the "
+                                                  <>  show prog
                  in runProgramInvocation
                       verbosity
                       (programInvocation conf_prog args)
