@@ -1,0 +1,5 @@
+resolver: lts-15.7
+
+nix:
+  packages:
+    - binaryen
