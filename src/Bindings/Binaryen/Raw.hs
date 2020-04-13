@@ -76,8 +76,6 @@ foreign import ccall unsafe "BinaryenTryId" c_BinaryenTryId :: BinaryenExpressio
 foreign import ccall unsafe "BinaryenThrowId" c_BinaryenThrowId :: BinaryenExpressionId
 foreign import ccall unsafe "BinaryenRethrowId" c_BinaryenRethrowId :: BinaryenExpressionId
 foreign import ccall unsafe "BinaryenBrOnExnId" c_BinaryenBrOnExnId :: BinaryenExpressionId
-foreign import ccall unsafe "BinaryenTupleMakeId" c_BinaryenTupleMakeId :: BinaryenExpressionId
-foreign import ccall unsafe "BinaryenTupleExtractId" c_BinaryenTupleExtractId :: BinaryenExpressionId
 foreign import ccall unsafe "BinaryenPushId" c_BinaryenPushId :: BinaryenExpressionId
 foreign import ccall unsafe "BinaryenPopId" c_BinaryenPopId :: BinaryenExpressionId
 
@@ -101,7 +99,6 @@ foreign import ccall unsafe "BinaryenFeatureSIMD128" c_BinaryenFeatureSIMD128 ::
 foreign import ccall unsafe "BinaryenFeatureExceptionHandling" c_BinaryenFeatureExceptionHandling :: BinaryenFeatures
 foreign import ccall unsafe "BinaryenFeatureTailCall" c_BinaryenFeatureTailCall :: BinaryenFeatures
 foreign import ccall unsafe "BinaryenFeatureReferenceTypes" c_BinaryenFeatureReferenceTypes :: BinaryenFeatures
-foreign import ccall unsafe "BinaryenFeatureMultivalue" c_BinaryenFeatureMultivalue :: BinaryenFeatures
 foreign import ccall unsafe "BinaryenFeatureAll" c_BinaryenFeatureAll :: BinaryenFeatures
 
 data BinaryenModule
@@ -358,11 +355,9 @@ foreign import ccall unsafe "BinaryenOrVec128" c_BinaryenOrVec128 :: BinaryenOp
 foreign import ccall unsafe "BinaryenXorVec128" c_BinaryenXorVec128 :: BinaryenOp
 foreign import ccall unsafe "BinaryenAndNotVec128" c_BinaryenAndNotVec128 :: BinaryenOp
 foreign import ccall unsafe "BinaryenBitselectVec128" c_BinaryenBitselectVec128 :: BinaryenOp
-foreign import ccall unsafe "BinaryenAbsVecI8x16" c_BinaryenAbsVecI8x16 :: BinaryenOp
 foreign import ccall unsafe "BinaryenNegVecI8x16" c_BinaryenNegVecI8x16 :: BinaryenOp
 foreign import ccall unsafe "BinaryenAnyTrueVecI8x16" c_BinaryenAnyTrueVecI8x16 :: BinaryenOp
 foreign import ccall unsafe "BinaryenAllTrueVecI8x16" c_BinaryenAllTrueVecI8x16 :: BinaryenOp
-foreign import ccall unsafe "BinaryenBitmaskVecI8x16" c_BinaryenBitmaskVecI8x16 :: BinaryenOp
 foreign import ccall unsafe "BinaryenShlVecI8x16" c_BinaryenShlVecI8x16 :: BinaryenOp
 foreign import ccall unsafe "BinaryenShrSVecI8x16" c_BinaryenShrSVecI8x16 :: BinaryenOp
 foreign import ccall unsafe "BinaryenShrUVecI8x16" c_BinaryenShrUVecI8x16 :: BinaryenOp
@@ -378,11 +373,9 @@ foreign import ccall unsafe "BinaryenMinUVecI8x16" c_BinaryenMinUVecI8x16 :: Bin
 foreign import ccall unsafe "BinaryenMaxSVecI8x16" c_BinaryenMaxSVecI8x16 :: BinaryenOp
 foreign import ccall unsafe "BinaryenMaxUVecI8x16" c_BinaryenMaxUVecI8x16 :: BinaryenOp
 foreign import ccall unsafe "BinaryenAvgrUVecI8x16" c_BinaryenAvgrUVecI8x16 :: BinaryenOp
-foreign import ccall unsafe "BinaryenAbsVecI16x8" c_BinaryenAbsVecI16x8 :: BinaryenOp
 foreign import ccall unsafe "BinaryenNegVecI16x8" c_BinaryenNegVecI16x8 :: BinaryenOp
 foreign import ccall unsafe "BinaryenAnyTrueVecI16x8" c_BinaryenAnyTrueVecI16x8 :: BinaryenOp
 foreign import ccall unsafe "BinaryenAllTrueVecI16x8" c_BinaryenAllTrueVecI16x8 :: BinaryenOp
-foreign import ccall unsafe "BinaryenBitmaskVecI16x8" c_BinaryenBitmaskVecI16x8 :: BinaryenOp
 foreign import ccall unsafe "BinaryenShlVecI16x8" c_BinaryenShlVecI16x8 :: BinaryenOp
 foreign import ccall unsafe "BinaryenShrSVecI16x8" c_BinaryenShrSVecI16x8 :: BinaryenOp
 foreign import ccall unsafe "BinaryenShrUVecI16x8" c_BinaryenShrUVecI16x8 :: BinaryenOp
@@ -398,11 +391,9 @@ foreign import ccall unsafe "BinaryenMinUVecI16x8" c_BinaryenMinUVecI16x8 :: Bin
 foreign import ccall unsafe "BinaryenMaxSVecI16x8" c_BinaryenMaxSVecI16x8 :: BinaryenOp
 foreign import ccall unsafe "BinaryenMaxUVecI16x8" c_BinaryenMaxUVecI16x8 :: BinaryenOp
 foreign import ccall unsafe "BinaryenAvgrUVecI16x8" c_BinaryenAvgrUVecI16x8 :: BinaryenOp
-foreign import ccall unsafe "BinaryenAbsVecI32x4" c_BinaryenAbsVecI32x4 :: BinaryenOp
 foreign import ccall unsafe "BinaryenNegVecI32x4" c_BinaryenNegVecI32x4 :: BinaryenOp
 foreign import ccall unsafe "BinaryenAnyTrueVecI32x4" c_BinaryenAnyTrueVecI32x4 :: BinaryenOp
 foreign import ccall unsafe "BinaryenAllTrueVecI32x4" c_BinaryenAllTrueVecI32x4 :: BinaryenOp
-foreign import ccall unsafe "BinaryenBitmaskVecI32x4" c_BinaryenBitmaskVecI32x4 :: BinaryenOp
 foreign import ccall unsafe "BinaryenShlVecI32x4" c_BinaryenShlVecI32x4 :: BinaryenOp
 foreign import ccall unsafe "BinaryenShrSVecI32x4" c_BinaryenShrSVecI32x4 :: BinaryenOp
 foreign import ccall unsafe "BinaryenShrUVecI32x4" c_BinaryenShrUVecI32x4 :: BinaryenOp
@@ -853,20 +844,6 @@ foreign import ccall unsafe "BinaryenBrOnExn"
     Ptr CChar ->
     Ptr CChar ->
     BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
-
-foreign import ccall unsafe "BinaryenTupleMake"
-  c_BinaryenTupleMake ::
-    BinaryenModuleRef ->
-    Ptr BinaryenExpressionRef ->
-    BinaryenIndex ->
-    IO BinaryenExpressionRef
-
-foreign import ccall unsafe "BinaryenTupleExtract"
-  c_BinaryenTupleExtract ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    BinaryenIndex ->
     IO BinaryenExpressionRef
 
 foreign import ccall unsafe "BinaryenPush"
@@ -1378,22 +1355,6 @@ foreign import ccall unsafe "BinaryenBrOnExnGetName"
 foreign import ccall unsafe "BinaryenBrOnExnGetExnref"
   c_BinaryenBrOnExnGetExnref ::
     BinaryenExpressionRef -> IO BinaryenExpressionRef
-
-foreign import ccall unsafe "BinaryenTupleMakeGetNumOperands"
-  c_BinaryenTupleMakeGetNumOperands ::
-    BinaryenExpressionRef -> IO BinaryenIndex
-
-foreign import ccall unsafe "BinaryenTupleMakeGetOperand"
-  c_BinaryenTupleMakeGetOperand ::
-    BinaryenExpressionRef -> BinaryenIndex -> IO BinaryenExpressionRef
-
-foreign import ccall unsafe "BinaryenTupleExtractGetTuple"
-  c_BinaryenTupleExtractGetTuple ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
-
-foreign import ccall unsafe "BinaryenTupleExtractGetIndex"
-  c_BinaryenTupleExtractGetIndex ::
-    BinaryenExpressionRef -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenPushGetValue"
   c_BinaryenPushGetValue ::
