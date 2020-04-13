@@ -1,13 +1,16 @@
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Bindings.Binaryen.Raw where
 
 import Foreign
 import Foreign.C
 
 newtype BinaryenIndex = BinaryenIndex Word32
-  deriving (Eq, Show)
+  deriving newtype (Eq, Num, Show, Storable)
 
 newtype BinaryenType = BinaryenType Word32
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenTypeNone" c_BinaryenTypeNone :: BinaryenType
 foreign import ccall unsafe "BinaryenTypeInt32" c_BinaryenTypeInt32 :: BinaryenType
@@ -32,7 +35,7 @@ foreign import ccall unsafe "BinaryenTypeExpand"
   c_BinaryenTypeExpand :: BinaryenType -> Ptr BinaryenType -> IO ()
 
 newtype BinaryenExpressionId = BinaryenExpressionId Word32
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenInvalidId" c_BinaryenInvalidId :: BinaryenExpressionId
 foreign import ccall unsafe "BinaryenBlockId" c_BinaryenBlockId :: BinaryenExpressionId
@@ -83,7 +86,7 @@ foreign import ccall unsafe "BinaryenPushId" c_BinaryenPushId :: BinaryenExpress
 foreign import ccall unsafe "BinaryenPopId" c_BinaryenPopId :: BinaryenExpressionId
 
 newtype BinaryenExternalKind = BinaryenExternalKind Word32
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenExternalFunction" c_BinaryenExternalFunction :: BinaryenExternalKind
 foreign import ccall unsafe "BinaryenExternalTable" c_BinaryenExternalTable :: BinaryenExternalKind
@@ -92,7 +95,7 @@ foreign import ccall unsafe "BinaryenExternalGlobal" c_BinaryenExternalGlobal ::
 foreign import ccall unsafe "BinaryenExternalEvent" c_BinaryenExternalEvent :: BinaryenExternalKind
 
 newtype BinaryenFeatures = BinaryenFeatures Word32
-  deriving (Eq, Show)
+  deriving newtype (Bits, Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenFeatureMVP" c_BinaryenFeatureMVP :: BinaryenFeatures
 foreign import ccall unsafe "BinaryenFeatureAtomics" c_BinaryenFeatureAtomics :: BinaryenFeatures
@@ -107,7 +110,7 @@ foreign import ccall unsafe "BinaryenFeatureReferenceTypes" c_BinaryenFeatureRef
 foreign import ccall unsafe "BinaryenFeatureAll" c_BinaryenFeatureAll :: BinaryenFeatures
 
 newtype BinaryenModule = BinaryenModule (Ptr BinaryenModule)
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenModuleCreate"
   c_BinaryenModuleCreate ::
@@ -146,7 +149,7 @@ foreign import ccall unsafe "BinaryenConstFloat64Bits"
     BinaryenModule -> Int64 -> IO BinaryenExpression
 
 newtype BinaryenOp = BinaryenOp Int32
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenClzInt32" c_BinaryenClzInt32 :: BinaryenOp
 foreign import ccall unsafe "BinaryenCtzInt32" c_BinaryenCtzInt32 :: BinaryenOp
@@ -473,7 +476,7 @@ foreign import ccall unsafe "BinaryenWidenHighUVecI16x8ToVecI32x4" c_BinaryenWid
 foreign import ccall unsafe "BinaryenSwizzleVec8x16" c_BinaryenSwizzleVec8x16 :: BinaryenOp
 
 newtype BinaryenExpression = BinaryenExpression (Ptr BinaryenExpression)
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenBlock"
   c_BinaryenBlock ::
@@ -1365,7 +1368,7 @@ foreign import ccall unsafe "BinaryenPushGetValue"
     BinaryenExpression -> IO BinaryenExpression
 
 newtype BinaryenFunction = BinaryenFunction (Ptr BinaryenFunction)
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenAddFunction"
   c_BinaryenAddFunction ::
@@ -1443,7 +1446,7 @@ foreign import ccall unsafe "BinaryenAddEventImport"
     IO ()
 
 newtype BinaryenExport = BinaryenExport (Ptr BinaryenExport)
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenAddFunctionExport"
   c_BinaryenAddFunctionExport ::
@@ -1470,7 +1473,7 @@ foreign import ccall unsafe "BinaryenRemoveExport"
     BinaryenModule -> Ptr CChar -> IO ()
 
 newtype BinaryenGlobal = BinaryenGlobal (Ptr BinaryenGlobal)
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenAddGlobal"
   c_BinaryenAddGlobal ::
@@ -1490,7 +1493,7 @@ foreign import ccall unsafe "BinaryenRemoveGlobal"
     BinaryenModule -> Ptr CChar -> IO ()
 
 newtype BinaryenEvent = BinaryenEvent (Ptr BinaryenEvent)
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenAddEvent"
   c_BinaryenAddEvent ::
@@ -1871,10 +1874,10 @@ foreign import ccall unsafe "BinaryenExpressionGetSideEffects"
     BinaryenExpression -> BinaryenFeatures -> IO BinaryenSideEffects
 
 newtype Relooper = Relooper (Ptr Relooper)
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 newtype RelooperBlock = RelooperBlock (Ptr RelooperBlock)
-  deriving (Eq, Show)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "RelooperCreate"
   c_RelooperCreate ::
