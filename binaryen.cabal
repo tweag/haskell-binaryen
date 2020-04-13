@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ea0d4a9b69a98da72379923fb4265a87fb9ca71fbc44a4f37a5055fdf86c097e
+-- hash: 40cc0a5eb6ca4a5799291a6d00ba13156956f3eaee86026aadc94fb81d6cb63f
 
 name:           binaryen
 version:        0.0.1
@@ -28,7 +28,21 @@ source-repository head
 
 library
   exposed-modules:
-      Bindings.Binaryen.Raw
+      Binaryen
+      Binaryen.Event
+      Binaryen.Export
+      Binaryen.Expression
+      Binaryen.ExpressionId
+      Binaryen.ExternalKind
+      Binaryen.Features
+      Binaryen.Function
+      Binaryen.Global
+      Binaryen.Index
+      Binaryen.Module
+      Binaryen.Op
+      Binaryen.Relooper
+      Binaryen.SideEffects
+      Binaryen.Type
   other-modules:
       Paths_binaryen
   hs-source-dirs:
