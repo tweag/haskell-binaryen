@@ -1,10 +1,10 @@
-cabal-version: 2.0
+cabal-version: 1.12
 
 -- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 63bca0b5e94bdf069605c9e929fef636606ba666d3fb68d0c77161e28b92b965
+-- hash: ea0d4a9b69a98da72379923fb4265a87fb9ca71fbc44a4f37a5055fdf86c097e
 
 name:           binaryen
 version:        0.0.1
@@ -29,8 +29,7 @@ source-repository head
 library
   exposed-modules:
       Bindings.Binaryen.Raw
-      Paths_binaryen
-  autogen-modules:
+  other-modules:
       Paths_binaryen
   hs-source-dirs:
       src
@@ -42,19 +41,4 @@ library
       stdc++
   build-depends:
       base
-  default-language: Haskell2010
-
-executable pouet
-  main-is: Main.hs
-  other-modules:
-      Paths_binaryen
-  ghc-options: -Wall
-  c-sources:
-      cbits/wrappers.c
-  extra-libraries:
-      binaryen
-      stdc++
-  build-depends:
-      base
-    , binaryen
   default-language: Haskell2010
