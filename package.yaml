@@ -25,5 +25,4 @@ dependencies:
   - base
 
 library:
-  generated-exposed-modules: Paths_binaryen
   source-dirs: src

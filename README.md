@@ -6,7 +6,4 @@ contains 1-to-1 raw bindings to the `binaryen` C
 Executables which use this module will automatically link against `libstdc++`
 and `libbinaryen`.
 
-It's also possible to run the `binaryen` executables like `wasm-opt`; use
-`Paths_binaryen.getBinDir` to get the executable location.
-
 [binaryen]: https://github.com/WebAssembly/binaryen
