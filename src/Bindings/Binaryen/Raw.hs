@@ -1,11 +1,16 @@
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Bindings.Binaryen.Raw where
 
 import Foreign
 import Foreign.C
 
-type BinaryenIndex = Word32
+newtype BinaryenIndex = BinaryenIndex Word32
+  deriving newtype (Eq, Num, Show, Storable)
 
-type BinaryenType = Word32
+newtype BinaryenType = BinaryenType Word32
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenTypeNone" c_BinaryenTypeNone :: BinaryenType
 foreign import ccall unsafe "BinaryenTypeInt32" c_BinaryenTypeInt32 :: BinaryenType
@@ -29,7 +34,8 @@ foreign import ccall unsafe "BinaryenTypeArity"
 foreign import ccall unsafe "BinaryenTypeExpand"
   c_BinaryenTypeExpand :: BinaryenType -> Ptr BinaryenType -> IO ()
 
-type BinaryenExpressionId = Word32
+newtype BinaryenExpressionId = BinaryenExpressionId Word32
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenInvalidId" c_BinaryenInvalidId :: BinaryenExpressionId
 foreign import ccall unsafe "BinaryenBlockId" c_BinaryenBlockId :: BinaryenExpressionId
@@ -79,7 +85,8 @@ foreign import ccall unsafe "BinaryenBrOnExnId" c_BinaryenBrOnExnId :: BinaryenE
 foreign import ccall unsafe "BinaryenPushId" c_BinaryenPushId :: BinaryenExpressionId
 foreign import ccall unsafe "BinaryenPopId" c_BinaryenPopId :: BinaryenExpressionId
 
-type BinaryenExternalKind = Word32
+newtype BinaryenExternalKind = BinaryenExternalKind Word32
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenExternalFunction" c_BinaryenExternalFunction :: BinaryenExternalKind
 foreign import ccall unsafe "BinaryenExternalTable" c_BinaryenExternalTable :: BinaryenExternalKind
@@ -87,7 +94,8 @@ foreign import ccall unsafe "BinaryenExternalMemory" c_BinaryenExternalMemory ::
 foreign import ccall unsafe "BinaryenExternalGlobal" c_BinaryenExternalGlobal :: BinaryenExternalKind
 foreign import ccall unsafe "BinaryenExternalEvent" c_BinaryenExternalEvent :: BinaryenExternalKind
 
-type BinaryenFeatures = Word32
+newtype BinaryenFeatures = BinaryenFeatures Word32
+  deriving newtype (Bits, Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenFeatureMVP" c_BinaryenFeatureMVP :: BinaryenFeatures
 foreign import ccall unsafe "BinaryenFeatureAtomics" c_BinaryenFeatureAtomics :: BinaryenFeatures
@@ -101,47 +109,47 @@ foreign import ccall unsafe "BinaryenFeatureTailCall" c_BinaryenFeatureTailCall 
 foreign import ccall unsafe "BinaryenFeatureReferenceTypes" c_BinaryenFeatureReferenceTypes :: BinaryenFeatures
 foreign import ccall unsafe "BinaryenFeatureAll" c_BinaryenFeatureAll :: BinaryenFeatures
 
-data BinaryenModule
-
-type BinaryenModuleRef = Ptr BinaryenModule
+newtype BinaryenModule = BinaryenModule (Ptr BinaryenModule)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenModuleCreate"
   c_BinaryenModuleCreate ::
-    IO BinaryenModuleRef
+    IO BinaryenModule
 
 foreign import ccall unsafe "BinaryenModuleDispose"
   c_BinaryenModuleDispose ::
-    BinaryenModuleRef -> IO ()
+    BinaryenModule -> IO ()
 
 foreign import ccall unsafe "BinaryenConstInt32"
   c_BinaryenConstInt32 ::
-    BinaryenModuleRef -> Int32 -> IO BinaryenExpressionRef
+    BinaryenModule -> Int32 -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenConstInt64"
   c_BinaryenConstInt64 ::
-    BinaryenModuleRef -> Int64 -> IO BinaryenExpressionRef
+    BinaryenModule -> Int64 -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenConstFloat32"
   c_BinaryenConstFloat32 ::
-    BinaryenModuleRef -> Float -> IO BinaryenExpressionRef
+    BinaryenModule -> Float -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenConstFloat64"
   c_BinaryenConstFloat64 ::
-    BinaryenModuleRef -> Double -> IO BinaryenExpressionRef
+    BinaryenModule -> Double -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenConstVec128"
   c_BinaryenConstVec128 ::
-    BinaryenModuleRef -> Ptr Word8 -> IO BinaryenExpressionRef
+    BinaryenModule -> Ptr Word8 -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenConstFloat32Bits"
   c_BinaryenConstFloat32Bits ::
-    BinaryenModuleRef -> Int32 -> IO BinaryenExpressionRef
+    BinaryenModule -> Int32 -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenConstFloat64Bits"
   c_BinaryenConstFloat64Bits ::
-    BinaryenModuleRef -> Int64 -> IO BinaryenExpressionRef
+    BinaryenModule -> Int64 -> IO BinaryenExpression
 
-type BinaryenOp = Int32
+newtype BinaryenOp = BinaryenOp Int32
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenClzInt32" c_BinaryenClzInt32 :: BinaryenOp
 foreign import ccall unsafe "BinaryenCtzInt32" c_BinaryenCtzInt32 :: BinaryenOp
@@ -467,933 +475,931 @@ foreign import ccall unsafe "BinaryenWidenLowUVecI16x8ToVecI32x4" c_BinaryenWide
 foreign import ccall unsafe "BinaryenWidenHighUVecI16x8ToVecI32x4" c_BinaryenWidenHighUVecI16x8ToVecI32x4 :: BinaryenOp
 foreign import ccall unsafe "BinaryenSwizzleVec8x16" c_BinaryenSwizzleVec8x16 :: BinaryenOp
 
-data BinaryenExpression
-
-type BinaryenExpressionRef = Ptr BinaryenExpression
+newtype BinaryenExpression = BinaryenExpression (Ptr BinaryenExpression)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenBlock"
   c_BinaryenBlock ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
-    Ptr BinaryenExpressionRef ->
+    Ptr BinaryenExpression ->
     BinaryenIndex ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenIf"
   c_BinaryenIf ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenModule ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenLoop"
   c_BinaryenLoop ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenBreak"
   c_BinaryenBreak ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSwitch"
   c_BinaryenSwitch ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr (Ptr CChar) ->
     BinaryenIndex ->
     Ptr CChar ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenCall"
   c_BinaryenCall ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
-    Ptr BinaryenExpressionRef ->
+    Ptr BinaryenExpression ->
     BinaryenIndex ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenCallIndirect"
   c_BinaryenCallIndirect ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    Ptr BinaryenExpressionRef ->
+    BinaryenModule ->
+    BinaryenExpression ->
+    Ptr BinaryenExpression ->
     BinaryenIndex ->
     BinaryenType ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenReturnCall"
   c_BinaryenReturnCall ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
-    Ptr BinaryenExpressionRef ->
+    Ptr BinaryenExpression ->
     BinaryenIndex ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenReturnCallIndirect"
   c_BinaryenReturnCallIndirect ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    Ptr BinaryenExpressionRef ->
+    BinaryenModule ->
+    BinaryenExpression ->
+    Ptr BinaryenExpression ->
     BinaryenIndex ->
     BinaryenType ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenLocalGet"
   c_BinaryenLocalGet ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenIndex ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenLocalSet"
   c_BinaryenLocalSet ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenIndex ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenLocalTee"
   c_BinaryenLocalTee ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenIndex ->
-    BinaryenExpressionRef ->
+    BinaryenExpression ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenGlobalGet"
   c_BinaryenGlobalGet ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenGlobalSet"
   c_BinaryenGlobalSet ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenLoad"
   c_BinaryenLoad ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Word32 ->
     Int8 ->
     Word32 ->
     Word32 ->
     BinaryenType ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenStore"
   c_BinaryenStore ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Word32 ->
     Word32 ->
     Word32 ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
+    BinaryenExpression ->
+    BinaryenExpression ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenUnary"
   c_BinaryenUnary ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenOp ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenBinary"
   c_BinaryenBinary ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenOp ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSelect"
   c_BinaryenSelect ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
+    BinaryenModule ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    BinaryenExpression ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenDrop"
   c_BinaryenDrop ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenModule ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenReturn"
   c_BinaryenReturn ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenModule ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenHost"
   c_BinaryenHost ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenOp ->
     Ptr CChar ->
-    Ptr BinaryenExpressionRef ->
+    Ptr BinaryenExpression ->
     BinaryenIndex ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenNop"
   c_BinaryenNop ::
-    BinaryenModuleRef -> IO BinaryenExpressionRef
+    BinaryenModule -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenUnreachable"
   c_BinaryenUnreachable ::
-    BinaryenModuleRef -> IO BinaryenExpressionRef
+    BinaryenModule -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicLoad"
   c_BinaryenAtomicLoad ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Word32 ->
     Word32 ->
     BinaryenType ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicStore"
   c_BinaryenAtomicStore ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Word32 ->
     Word32 ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
+    BinaryenExpression ->
+    BinaryenExpression ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicRMW"
   c_BinaryenAtomicRMW ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenOp ->
     BinaryenIndex ->
     BinaryenIndex ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
+    BinaryenExpression ->
+    BinaryenExpression ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicCmpxchg"
   c_BinaryenAtomicCmpxchg ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenIndex ->
     BinaryenIndex ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    BinaryenExpression ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicWait"
   c_BinaryenAtomicWait ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
+    BinaryenModule ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    BinaryenExpression ->
     BinaryenType ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicNotify"
   c_BinaryenAtomicNotify ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenModule ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicFence"
   c_BinaryenAtomicFence ::
-    BinaryenModuleRef -> IO BinaryenExpressionRef
+    BinaryenModule -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDExtract"
   c_BinaryenSIMDExtract ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenOp ->
-    BinaryenExpressionRef ->
+    BinaryenExpression ->
     Word8 ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDReplace"
   c_BinaryenSIMDReplace ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenOp ->
-    BinaryenExpressionRef ->
+    BinaryenExpression ->
     Word8 ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDShuffle"
   c_BinaryenSIMDShuffle ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
+    BinaryenModule ->
+    BinaryenExpression ->
+    BinaryenExpression ->
     Ptr Word8 ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDTernary"
   c_BinaryenSIMDTernary ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenOp ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDShift"
   c_BinaryenSIMDShift ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenOp ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDLoad"
   c_BinaryenSIMDLoad ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenOp ->
     Word32 ->
     Word32 ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryInit"
   c_BinaryenMemoryInit ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Word32 ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenDataDrop"
   c_BinaryenDataDrop ::
-    BinaryenModuleRef -> Word32 -> IO BinaryenExpressionRef
+    BinaryenModule -> Word32 -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryCopy"
   c_BinaryenMemoryCopy ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenModule ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryFill"
   c_BinaryenMemoryFill ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenModule ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenRefNull"
   c_BinaryenRefNull ::
-    BinaryenModuleRef -> IO BinaryenExpressionRef
+    BinaryenModule -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenRefIsNull"
   c_BinaryenRefIsNull ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenModule ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenRefFunc"
   c_BinaryenRefFunc ::
-    BinaryenModuleRef -> Ptr CChar -> IO BinaryenExpressionRef
+    BinaryenModule -> Ptr CChar -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenTry"
   c_BinaryenTry ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenModule ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenThrow"
   c_BinaryenThrow ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
-    Ptr BinaryenExpressionRef ->
+    Ptr BinaryenExpression ->
     BinaryenIndex ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenRethrow"
   c_BinaryenRethrow ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenModule ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenBrOnExn"
   c_BinaryenBrOnExn ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     Ptr CChar ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenPush"
   c_BinaryenPush ::
-    BinaryenModuleRef ->
-    BinaryenExpressionRef ->
-    IO BinaryenExpressionRef
+    BinaryenModule ->
+    BinaryenExpression ->
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenPop"
   c_BinaryenPop ::
-    BinaryenModuleRef -> BinaryenType -> IO BinaryenExpressionRef
+    BinaryenModule -> BinaryenType -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenExpressionGetId"
   c_BinaryenExpressionGetId ::
-    BinaryenExpressionRef -> IO BinaryenExpressionId
+    BinaryenExpression -> IO BinaryenExpressionId
 
 foreign import ccall unsafe "BinaryenExpressionGetType"
   c_BinaryenExpressionGetType ::
-    BinaryenExpressionRef -> IO BinaryenType
+    BinaryenExpression -> IO BinaryenType
 
 foreign import ccall unsafe "BinaryenExpressionPrint"
   c_BinaryenExpressionPrint ::
-    BinaryenExpressionRef -> IO ()
+    BinaryenExpression -> IO ()
 
 foreign import ccall unsafe "BinaryenBlockGetName"
   c_BinaryenBlockGetName ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenBlockGetNumChildren"
   c_BinaryenBlockGetNumChildren ::
-    BinaryenExpressionRef -> IO BinaryenIndex
+    BinaryenExpression -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenBlockGetChild"
   c_BinaryenBlockGetChild ::
-    BinaryenExpressionRef -> BinaryenIndex -> IO BinaryenExpressionRef
+    BinaryenExpression -> BinaryenIndex -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenIfGetCondition"
   c_BinaryenIfGetCondition ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenIfGetIfTrue"
   c_BinaryenIfGetIfTrue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenIfGetIfFalse"
   c_BinaryenIfGetIfFalse ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenLoopGetName"
   c_BinaryenLoopGetName ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenLoopGetBody"
   c_BinaryenLoopGetBody ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenBreakGetName"
   c_BinaryenBreakGetName ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenBreakGetCondition"
   c_BinaryenBreakGetCondition ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenBreakGetValue"
   c_BinaryenBreakGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSwitchGetNumNames"
   c_BinaryenSwitchGetNumNames ::
-    BinaryenExpressionRef -> IO BinaryenIndex
+    BinaryenExpression -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenSwitchGetName"
   c_BinaryenSwitchGetName ::
-    BinaryenExpressionRef -> BinaryenIndex -> IO (Ptr CChar)
+    BinaryenExpression -> BinaryenIndex -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenSwitchGetDefaultName"
   c_BinaryenSwitchGetDefaultName ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenSwitchGetCondition"
   c_BinaryenSwitchGetCondition ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSwitchGetValue"
   c_BinaryenSwitchGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenCallGetTarget"
   c_BinaryenCallGetTarget ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenCallGetNumOperands"
   c_BinaryenCallGetNumOperands ::
-    BinaryenExpressionRef -> IO BinaryenIndex
+    BinaryenExpression -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenCallGetOperand"
   c_BinaryenCallGetOperand ::
-    BinaryenExpressionRef -> BinaryenIndex -> IO BinaryenExpressionRef
+    BinaryenExpression -> BinaryenIndex -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenCallIndirectGetTarget"
   c_BinaryenCallIndirectGetTarget ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenCallIndirectGetNumOperands"
   c_BinaryenCallIndirectGetNumOperands ::
-    BinaryenExpressionRef -> IO BinaryenIndex
+    BinaryenExpression -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenCallIndirectGetOperand"
   c_BinaryenCallIndirectGetOperand ::
-    BinaryenExpressionRef -> BinaryenIndex -> IO BinaryenExpressionRef
+    BinaryenExpression -> BinaryenIndex -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenLocalGetGetIndex"
   c_BinaryenLocalGetGetIndex ::
-    BinaryenExpressionRef -> IO BinaryenIndex
+    BinaryenExpression -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenLocalSetIsTee"
   c_BinaryenLocalSetIsTee ::
-    BinaryenExpressionRef -> IO CInt
+    BinaryenExpression -> IO CInt
 
 foreign import ccall unsafe "BinaryenLocalSetGetIndex"
   c_BinaryenLocalSetGetIndex ::
-    BinaryenExpressionRef -> IO BinaryenIndex
+    BinaryenExpression -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenLocalSetGetValue"
   c_BinaryenLocalSetGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenGlobalGetGetName"
   c_BinaryenGlobalGetGetName ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenGlobalSetGetName"
   c_BinaryenGlobalSetGetName ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenGlobalSetGetValue"
   c_BinaryenGlobalSetGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenHostGetOp"
   c_BinaryenHostGetOp ::
-    BinaryenExpressionRef -> IO BinaryenOp
+    BinaryenExpression -> IO BinaryenOp
 
 foreign import ccall unsafe "BinaryenHostGetNameOperand"
   c_BinaryenHostGetNameOperand ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenHostGetNumOperands"
   c_BinaryenHostGetNumOperands ::
-    BinaryenExpressionRef -> IO BinaryenIndex
+    BinaryenExpression -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenHostGetOperand"
   c_BinaryenHostGetOperand ::
-    BinaryenExpressionRef -> BinaryenIndex -> IO BinaryenExpressionRef
+    BinaryenExpression -> BinaryenIndex -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenLoadIsAtomic"
   c_BinaryenLoadIsAtomic ::
-    BinaryenExpressionRef -> IO CInt
+    BinaryenExpression -> IO CInt
 
 foreign import ccall unsafe "BinaryenLoadIsSigned"
   c_BinaryenLoadIsSigned ::
-    BinaryenExpressionRef -> IO CInt
+    BinaryenExpression -> IO CInt
 
 foreign import ccall unsafe "BinaryenLoadGetOffset"
   c_BinaryenLoadGetOffset ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenLoadGetBytes"
   c_BinaryenLoadGetBytes ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenLoadGetAlign"
   c_BinaryenLoadGetAlign ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenLoadGetPtr"
   c_BinaryenLoadGetPtr ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenStoreIsAtomic"
   c_BinaryenStoreIsAtomic ::
-    BinaryenExpressionRef -> IO CInt
+    BinaryenExpression -> IO CInt
 
 foreign import ccall unsafe "BinaryenStoreGetBytes"
   c_BinaryenStoreGetBytes ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenStoreGetOffset"
   c_BinaryenStoreGetOffset ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenStoreGetAlign"
   c_BinaryenStoreGetAlign ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenStoreGetPtr"
   c_BinaryenStoreGetPtr ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenStoreGetValue"
   c_BinaryenStoreGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenConstGetValueI32"
   c_BinaryenConstGetValueI32 ::
-    BinaryenExpressionRef -> IO Int32
+    BinaryenExpression -> IO Int32
 
 foreign import ccall unsafe "BinaryenConstGetValueI64"
   c_BinaryenConstGetValueI64 ::
-    BinaryenExpressionRef -> IO Int64
+    BinaryenExpression -> IO Int64
 
 foreign import ccall unsafe "BinaryenConstGetValueI64Low"
   c_BinaryenConstGetValueI64Low ::
-    BinaryenExpressionRef -> IO Int32
+    BinaryenExpression -> IO Int32
 
 foreign import ccall unsafe "BinaryenConstGetValueI64High"
   c_BinaryenConstGetValueI64High ::
-    BinaryenExpressionRef -> IO Int32
+    BinaryenExpression -> IO Int32
 
 foreign import ccall unsafe "BinaryenConstGetValueF32"
   c_BinaryenConstGetValueF32 ::
-    BinaryenExpressionRef -> IO CFloat
+    BinaryenExpression -> IO CFloat
 
 foreign import ccall unsafe "BinaryenConstGetValueF64"
   c_BinaryenConstGetValueF64 ::
-    BinaryenExpressionRef -> IO CDouble
+    BinaryenExpression -> IO CDouble
 
 foreign import ccall unsafe "BinaryenConstGetValueV128"
   c_BinaryenConstGetValueV128 ::
-    BinaryenExpressionRef -> Ptr Word8 -> IO ()
+    BinaryenExpression -> Ptr Word8 -> IO ()
 
 foreign import ccall unsafe "BinaryenUnaryGetOp"
   c_BinaryenUnaryGetOp ::
-    BinaryenExpressionRef -> IO BinaryenOp
+    BinaryenExpression -> IO BinaryenOp
 
 foreign import ccall unsafe "BinaryenUnaryGetValue"
   c_BinaryenUnaryGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenBinaryGetOp"
   c_BinaryenBinaryGetOp ::
-    BinaryenExpressionRef -> IO BinaryenOp
+    BinaryenExpression -> IO BinaryenOp
 
 foreign import ccall unsafe "BinaryenBinaryGetLeft"
   c_BinaryenBinaryGetLeft ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenBinaryGetRight"
   c_BinaryenBinaryGetRight ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSelectGetIfTrue"
   c_BinaryenSelectGetIfTrue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSelectGetIfFalse"
   c_BinaryenSelectGetIfFalse ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSelectGetCondition"
   c_BinaryenSelectGetCondition ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenDropGetValue"
   c_BinaryenDropGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenReturnGetValue"
   c_BinaryenReturnGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicRMWGetOp"
   c_BinaryenAtomicRMWGetOp ::
-    BinaryenExpressionRef -> IO BinaryenOp
+    BinaryenExpression -> IO BinaryenOp
 
 foreign import ccall unsafe "BinaryenAtomicRMWGetBytes"
   c_BinaryenAtomicRMWGetBytes ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenAtomicRMWGetOffset"
   c_BinaryenAtomicRMWGetOffset ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenAtomicRMWGetPtr"
   c_BinaryenAtomicRMWGetPtr ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicRMWGetValue"
   c_BinaryenAtomicRMWGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicCmpxchgGetBytes"
   c_BinaryenAtomicCmpxchgGetBytes ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenAtomicCmpxchgGetOffset"
   c_BinaryenAtomicCmpxchgGetOffset ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenAtomicCmpxchgGetPtr"
   c_BinaryenAtomicCmpxchgGetPtr ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicCmpxchgGetExpected"
   c_BinaryenAtomicCmpxchgGetExpected ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicCmpxchgGetReplacement"
   c_BinaryenAtomicCmpxchgGetReplacement ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicWaitGetPtr"
   c_BinaryenAtomicWaitGetPtr ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicWaitGetExpected"
   c_BinaryenAtomicWaitGetExpected ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicWaitGetTimeout"
   c_BinaryenAtomicWaitGetTimeout ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicWaitGetExpectedType"
   c_BinaryenAtomicWaitGetExpectedType ::
-    BinaryenExpressionRef -> IO BinaryenType
+    BinaryenExpression -> IO BinaryenType
 
 foreign import ccall unsafe "BinaryenAtomicNotifyGetPtr"
   c_BinaryenAtomicNotifyGetPtr ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicNotifyGetNotifyCount"
   c_BinaryenAtomicNotifyGetNotifyCount ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenAtomicFenceGetOrder"
   c_BinaryenAtomicFenceGetOrder ::
-    BinaryenExpressionRef -> IO Word8
+    BinaryenExpression -> IO Word8
 
 foreign import ccall unsafe "BinaryenSIMDExtractGetOp"
   c_BinaryenSIMDExtractGetOp ::
-    BinaryenExpressionRef -> IO BinaryenOp
+    BinaryenExpression -> IO BinaryenOp
 
 foreign import ccall unsafe "BinaryenSIMDExtractGetVec"
   c_BinaryenSIMDExtractGetVec ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDExtractGetIndex"
   c_BinaryenSIMDExtractGetIndex ::
-    BinaryenExpressionRef -> IO Word8
+    BinaryenExpression -> IO Word8
 
 foreign import ccall unsafe "BinaryenSIMDReplaceGetOp"
   c_BinaryenSIMDReplaceGetOp ::
-    BinaryenExpressionRef -> IO BinaryenOp
+    BinaryenExpression -> IO BinaryenOp
 
 foreign import ccall unsafe "BinaryenSIMDReplaceGetVec"
   c_BinaryenSIMDReplaceGetVec ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDReplaceGetIndex"
   c_BinaryenSIMDReplaceGetIndex ::
-    BinaryenExpressionRef -> IO Word8
+    BinaryenExpression -> IO Word8
 
 foreign import ccall unsafe "BinaryenSIMDReplaceGetValue"
   c_BinaryenSIMDReplaceGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDShuffleGetLeft"
   c_BinaryenSIMDShuffleGetLeft ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDShuffleGetRight"
   c_BinaryenSIMDShuffleGetRight ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDShuffleGetMask"
   c_BinaryenSIMDShuffleGetMask ::
-    BinaryenExpressionRef -> Ptr Word8 -> IO ()
+    BinaryenExpression -> Ptr Word8 -> IO ()
 
 foreign import ccall unsafe "BinaryenSIMDTernaryGetOp"
   c_BinaryenSIMDTernaryGetOp ::
-    BinaryenExpressionRef -> IO BinaryenOp
+    BinaryenExpression -> IO BinaryenOp
 
 foreign import ccall unsafe "BinaryenSIMDTernaryGetA"
   c_BinaryenSIMDTernaryGetA ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDTernaryGetB"
   c_BinaryenSIMDTernaryGetB ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDTernaryGetC"
   c_BinaryenSIMDTernaryGetC ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDShiftGetOp"
   c_BinaryenSIMDShiftGetOp ::
-    BinaryenExpressionRef -> IO BinaryenOp
+    BinaryenExpression -> IO BinaryenOp
 
 foreign import ccall unsafe "BinaryenSIMDShiftGetVec"
   c_BinaryenSIMDShiftGetVec ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDShiftGetShift"
   c_BinaryenSIMDShiftGetShift ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSIMDLoadGetOp"
   c_BinaryenSIMDLoadGetOp ::
-    BinaryenExpressionRef -> IO BinaryenOp
+    BinaryenExpression -> IO BinaryenOp
 
 foreign import ccall unsafe "BinaryenSIMDLoadGetOffset"
   c_BinaryenSIMDLoadGetOffset ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenSIMDLoadGetAlign"
   c_BinaryenSIMDLoadGetAlign ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenSIMDLoadGetPtr"
   c_BinaryenSIMDLoadGetPtr ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryInitGetSegment"
   c_BinaryenMemoryInitGetSegment ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenMemoryInitGetDest"
   c_BinaryenMemoryInitGetDest ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryInitGetOffset"
   c_BinaryenMemoryInitGetOffset ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryInitGetSize"
   c_BinaryenMemoryInitGetSize ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenDataDropGetSegment"
   c_BinaryenDataDropGetSegment ::
-    BinaryenExpressionRef -> IO Word32
+    BinaryenExpression -> IO Word32
 
 foreign import ccall unsafe "BinaryenMemoryCopyGetDest"
   c_BinaryenMemoryCopyGetDest ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryCopyGetSource"
   c_BinaryenMemoryCopyGetSource ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryCopyGetSize"
   c_BinaryenMemoryCopyGetSize ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryFillGetDest"
   c_BinaryenMemoryFillGetDest ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryFillGetValue"
   c_BinaryenMemoryFillGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenMemoryFillGetSize"
   c_BinaryenMemoryFillGetSize ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenRefIsNullGetValue"
   c_BinaryenRefIsNullGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenRefFuncGetFunc"
   c_BinaryenRefFuncGetFunc ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenTryGetBody"
   c_BinaryenTryGetBody ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenTryGetCatchBody"
   c_BinaryenTryGetCatchBody ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenThrowGetEvent"
   c_BinaryenThrowGetEvent ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenThrowGetOperand"
   c_BinaryenThrowGetOperand ::
-    BinaryenExpressionRef -> BinaryenIndex -> IO BinaryenExpressionRef
+    BinaryenExpression -> BinaryenIndex -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenThrowGetNumOperands"
   c_BinaryenThrowGetNumOperands ::
-    BinaryenExpressionRef -> IO BinaryenIndex
+    BinaryenExpression -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenRethrowGetExnref"
   c_BinaryenRethrowGetExnref ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenBrOnExnGetEvent"
   c_BinaryenBrOnExnGetEvent ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenBrOnExnGetName"
   c_BinaryenBrOnExnGetName ::
-    BinaryenExpressionRef -> IO (Ptr CChar)
+    BinaryenExpression -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenBrOnExnGetExnref"
   c_BinaryenBrOnExnGetExnref ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenPushGetValue"
   c_BinaryenPushGetValue ::
-    BinaryenExpressionRef -> IO BinaryenExpressionRef
+    BinaryenExpression -> IO BinaryenExpression
 
-data BinaryenFunction
-
-type BinaryenFunctionRef = Ptr BinaryenFunction
+newtype BinaryenFunction = BinaryenFunction (Ptr BinaryenFunction)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenAddFunction"
   c_BinaryenAddFunction ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     BinaryenType ->
     BinaryenType ->
     Ptr BinaryenType ->
     BinaryenIndex ->
-    BinaryenExpressionRef ->
-    IO BinaryenFunctionRef
+    BinaryenExpression ->
+    IO BinaryenFunction
 
 foreign import ccall unsafe "BinaryenGetFunction"
   c_BinaryenGetFunction ::
-    BinaryenModuleRef -> Ptr CChar -> IO BinaryenFunctionRef
+    BinaryenModule -> Ptr CChar -> IO BinaryenFunction
 
 foreign import ccall unsafe "BinaryenRemoveFunction"
   c_BinaryenRemoveFunction ::
-    BinaryenModuleRef -> Ptr CChar -> IO ()
+    BinaryenModule -> Ptr CChar -> IO ()
 
 foreign import ccall unsafe "BinaryenGetNumFunctions"
   c_BinaryenGetNumFunctions ::
-    BinaryenModuleRef -> IO Word32
+    BinaryenModule -> IO Word32
 
 foreign import ccall unsafe "BinaryenGetFunctionByIndex"
   c_BinaryenGetFunctionByIndex ::
-    BinaryenModuleRef -> BinaryenIndex -> IO BinaryenFunctionRef
+    BinaryenModule -> BinaryenIndex -> IO BinaryenFunction
 
 foreign import ccall unsafe "BinaryenAddFunctionImport"
   c_BinaryenAddFunctionImport ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     Ptr CChar ->
     Ptr CChar ->
@@ -1403,7 +1409,7 @@ foreign import ccall unsafe "BinaryenAddFunctionImport"
 
 foreign import ccall unsafe "BinaryenAddTableImport"
   c_BinaryenAddTableImport ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     Ptr CChar ->
     Ptr CChar ->
@@ -1411,7 +1417,7 @@ foreign import ccall unsafe "BinaryenAddTableImport"
 
 foreign import ccall unsafe "BinaryenAddMemoryImport"
   c_BinaryenAddMemoryImport ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     Ptr CChar ->
     Ptr CChar ->
@@ -1420,7 +1426,7 @@ foreign import ccall unsafe "BinaryenAddMemoryImport"
 
 foreign import ccall unsafe "BinaryenAddGlobalImport"
   c_BinaryenAddGlobalImport ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     Ptr CChar ->
     Ptr CChar ->
@@ -1430,7 +1436,7 @@ foreign import ccall unsafe "BinaryenAddGlobalImport"
 
 foreign import ccall unsafe "BinaryenAddEventImport"
   c_BinaryenAddEventImport ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     Ptr CChar ->
     Ptr CChar ->
@@ -1439,118 +1445,115 @@ foreign import ccall unsafe "BinaryenAddEventImport"
     BinaryenType ->
     IO ()
 
-data BinaryenExport
-
-type BinaryenExportRef = Ptr BinaryenExport
+newtype BinaryenExport = BinaryenExport (Ptr BinaryenExport)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenAddFunctionExport"
   c_BinaryenAddFunctionExport ::
-    BinaryenModuleRef -> Ptr CChar -> Ptr CChar -> IO BinaryenExportRef
+    BinaryenModule -> Ptr CChar -> Ptr CChar -> IO BinaryenExport
 
 foreign import ccall unsafe "BinaryenAddTableExport"
   c_BinaryenAddTableExport ::
-    BinaryenModuleRef -> Ptr CChar -> Ptr CChar -> IO BinaryenExportRef
+    BinaryenModule -> Ptr CChar -> Ptr CChar -> IO BinaryenExport
 
 foreign import ccall unsafe "BinaryenAddMemoryExport"
   c_BinaryenAddMemoryExport ::
-    BinaryenModuleRef -> Ptr CChar -> Ptr CChar -> IO BinaryenExportRef
+    BinaryenModule -> Ptr CChar -> Ptr CChar -> IO BinaryenExport
 
 foreign import ccall unsafe "BinaryenAddGlobalExport"
   c_BinaryenAddGlobalExport ::
-    BinaryenModuleRef -> Ptr CChar -> Ptr CChar -> IO BinaryenExportRef
+    BinaryenModule -> Ptr CChar -> Ptr CChar -> IO BinaryenExport
 
 foreign import ccall unsafe "BinaryenAddEventExport"
   c_BinaryenAddEventExport ::
-    BinaryenModuleRef -> Ptr CChar -> Ptr CChar -> IO BinaryenExportRef
+    BinaryenModule -> Ptr CChar -> Ptr CChar -> IO BinaryenExport
 
 foreign import ccall unsafe "BinaryenRemoveExport"
   c_BinaryenRemoveExport ::
-    BinaryenModuleRef -> Ptr CChar -> IO ()
+    BinaryenModule -> Ptr CChar -> IO ()
 
-data BinaryenGlobal
-
-type BinaryenGlobalRef = Ptr BinaryenGlobal
+newtype BinaryenGlobal = BinaryenGlobal (Ptr BinaryenGlobal)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenAddGlobal"
   c_BinaryenAddGlobal ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     BinaryenType ->
     Int8 ->
-    BinaryenExpressionRef ->
-    IO BinaryenGlobalRef
+    BinaryenExpression ->
+    IO BinaryenGlobal
 
 foreign import ccall unsafe "BinaryenGetGlobal"
   c_BinaryenGetGlobal ::
-    BinaryenModuleRef -> Ptr CChar -> IO BinaryenGlobalRef
+    BinaryenModule -> Ptr CChar -> IO BinaryenGlobal
 
 foreign import ccall unsafe "BinaryenRemoveGlobal"
   c_BinaryenRemoveGlobal ::
-    BinaryenModuleRef -> Ptr CChar -> IO ()
+    BinaryenModule -> Ptr CChar -> IO ()
 
-data BinaryenEvent
-
-type BinaryenEventRef = Ptr BinaryenEvent
+newtype BinaryenEvent = BinaryenEvent (Ptr BinaryenEvent)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenAddEvent"
   c_BinaryenAddEvent ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     Word32 ->
     BinaryenType ->
     BinaryenType ->
-    IO BinaryenEventRef
+    IO BinaryenEvent
 
 foreign import ccall unsafe "BinaryenGetEvent"
   c_BinaryenGetEvent ::
-    BinaryenModuleRef -> Ptr CChar -> IO BinaryenEventRef
+    BinaryenModule -> Ptr CChar -> IO BinaryenEvent
 
 foreign import ccall unsafe "BinaryenRemoveEvent"
   c_BinaryenRemoveEvent ::
-    BinaryenModuleRef -> Ptr CChar -> IO ()
+    BinaryenModule -> Ptr CChar -> IO ()
 
 foreign import ccall unsafe "BinaryenSetFunctionTable"
   c_BinaryenSetFunctionTable ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenIndex ->
     BinaryenIndex ->
     Ptr (Ptr CChar) ->
     BinaryenIndex ->
-    BinaryenExpressionRef ->
+    BinaryenExpression ->
     IO ()
 
 foreign import ccall unsafe "BinaryenIsFunctionTableImported"
   c_BinaryenIsFunctionTableImported ::
-    BinaryenModuleRef -> IO CInt
+    BinaryenModule -> IO CInt
 
 foreign import ccall unsafe "BinaryenGetNumFunctionTableSegments"
   c_BinaryenGetNumFunctionTableSegments ::
-    BinaryenModuleRef -> IO BinaryenIndex
+    BinaryenModule -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenGetFunctionTableSegmentOffset"
   c_BinaryenGetFunctionTableSegmentOffset ::
-    BinaryenModuleRef -> BinaryenIndex -> IO BinaryenExpressionRef
+    BinaryenModule -> BinaryenIndex -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenGetFunctionTableSegmentLength"
   c_BinaryenGetFunctionTableSegmentLength ::
-    BinaryenModuleRef -> BinaryenIndex -> IO BinaryenIndex
+    BinaryenModule -> BinaryenIndex -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenGetFunctionTableSegmentData"
   c_BinaryenGetFunctionTableSegmentData ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenIndex ->
     BinaryenIndex ->
     IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenSetMemory"
   c_BinaryenSetMemory ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     BinaryenIndex ->
     BinaryenIndex ->
     Ptr CChar ->
     Ptr (Ptr CChar) ->
     Ptr Int8 ->
-    Ptr BinaryenExpressionRef ->
+    Ptr BinaryenExpression ->
     Ptr BinaryenIndex ->
     BinaryenIndex ->
     Word8 ->
@@ -1558,55 +1561,55 @@ foreign import ccall unsafe "BinaryenSetMemory"
 
 foreign import ccall unsafe "BinaryenGetNumMemorySegments"
   c_BinaryenGetNumMemorySegments ::
-    BinaryenModuleRef -> IO Word32
+    BinaryenModule -> IO Word32
 
 foreign import ccall unsafe "BinaryenGetMemorySegmentByteOffset"
   c_BinaryenGetMemorySegmentByteOffset ::
-    BinaryenModuleRef -> BinaryenIndex -> IO Word32
+    BinaryenModule -> BinaryenIndex -> IO Word32
 
 foreign import ccall unsafe "BinaryenGetMemorySegmentByteLength"
   c_BinaryenGetMemorySegmentByteLength ::
-    BinaryenModuleRef -> BinaryenIndex -> IO CSize
+    BinaryenModule -> BinaryenIndex -> IO CSize
 
 foreign import ccall unsafe "BinaryenGetMemorySegmentPassive"
   c_BinaryenGetMemorySegmentPassive ::
-    BinaryenModuleRef -> BinaryenIndex -> IO CInt
+    BinaryenModule -> BinaryenIndex -> IO CInt
 
 foreign import ccall unsafe "BinaryenCopyMemorySegmentData"
   c_BinaryenCopyMemorySegmentData ::
-    BinaryenModuleRef -> BinaryenIndex -> Ptr CChar -> IO ()
+    BinaryenModule -> BinaryenIndex -> Ptr CChar -> IO ()
 
 foreign import ccall unsafe "BinaryenSetStart"
   c_BinaryenSetStart ::
-    BinaryenModuleRef -> BinaryenFunctionRef -> IO ()
+    BinaryenModule -> BinaryenFunction -> IO ()
 
 foreign import ccall unsafe "BinaryenModuleGetFeatures"
   c_BinaryenModuleGetFeatures ::
-    BinaryenModuleRef -> IO BinaryenFeatures
+    BinaryenModule -> IO BinaryenFeatures
 
 foreign import ccall unsafe "BinaryenModuleSetFeatures"
   c_BinaryenModuleSetFeatures ::
-    BinaryenModuleRef -> BinaryenFeatures -> IO ()
+    BinaryenModule -> BinaryenFeatures -> IO ()
 
 foreign import ccall unsafe "BinaryenModuleParse"
   c_BinaryenModuleParse ::
-    Ptr CChar -> IO BinaryenModuleRef
+    Ptr CChar -> IO BinaryenModule
 
 foreign import ccall unsafe "BinaryenModulePrint"
   c_BinaryenModulePrint ::
-    BinaryenModuleRef -> IO ()
+    BinaryenModule -> IO ()
 
 foreign import ccall unsafe "BinaryenModulePrintAsmjs"
   c_BinaryenModulePrintAsmjs ::
-    BinaryenModuleRef -> IO ()
+    BinaryenModule -> IO ()
 
 foreign import ccall unsafe "BinaryenModuleValidate"
   c_BinaryenModuleValidate ::
-    BinaryenModuleRef -> IO CInt
+    BinaryenModule -> IO CInt
 
 foreign import ccall unsafe "BinaryenModuleOptimize"
   c_BinaryenModuleOptimize ::
-    BinaryenModuleRef -> IO ()
+    BinaryenModule -> IO ()
 
 foreign import ccall unsafe "BinaryenGetOptimizeLevel"
   c_BinaryenGetOptimizeLevel ::
@@ -1678,23 +1681,23 @@ foreign import ccall unsafe "BinaryenSetOneCallerInlineMaxSize"
 
 foreign import ccall unsafe "BinaryenModuleRunPasses"
   c_BinaryenModuleRunPasses ::
-    BinaryenModuleRef -> Ptr (Ptr CChar) -> BinaryenIndex -> IO ()
+    BinaryenModule -> Ptr (Ptr CChar) -> BinaryenIndex -> IO ()
 
 foreign import ccall unsafe "BinaryenModuleAutoDrop"
   c_BinaryenModuleAutoDrop ::
-    BinaryenModuleRef -> IO ()
+    BinaryenModule -> IO ()
 
 foreign import ccall unsafe "BinaryenModuleWrite"
   c_BinaryenModuleWrite ::
-    BinaryenModuleRef -> Ptr CChar -> CSize -> IO CSize
+    BinaryenModule -> Ptr CChar -> CSize -> IO CSize
 
 foreign import ccall unsafe "BinaryenModuleWriteText"
   c_BinaryenModuleWriteText ::
-    BinaryenModuleRef -> Ptr CChar -> CSize -> IO CSize
+    BinaryenModule -> Ptr CChar -> CSize -> IO CSize
 
 foreign import ccall unsafe "BinaryenModuleAllocateAndWriteMut"
   c_BinaryenModuleAllocateAndWriteMut ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     Ptr (Ptr ()) ->
     Ptr CSize ->
@@ -1703,64 +1706,64 @@ foreign import ccall unsafe "BinaryenModuleAllocateAndWriteMut"
 
 foreign import ccall unsafe "BinaryenModuleAllocateAndWriteText"
   c_BinaryenModuleAllocateAndWriteText ::
-    BinaryenModuleRef -> IO (Ptr CChar)
+    BinaryenModule -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenModuleRead"
   c_BinaryenModuleRead ::
-    Ptr CChar -> CSize -> IO BinaryenModuleRef
+    Ptr CChar -> CSize -> IO BinaryenModule
 
 foreign import ccall unsafe "BinaryenModuleInterpret"
   c_BinaryenModuleInterpret ::
-    BinaryenModuleRef -> IO ()
+    BinaryenModule -> IO ()
 
 foreign import ccall unsafe "BinaryenModuleAddDebugInfoFileName"
   c_BinaryenModuleAddDebugInfoFileName ::
-    BinaryenModuleRef -> Ptr CChar -> IO BinaryenIndex
+    BinaryenModule -> Ptr CChar -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenModuleGetDebugInfoFileName"
   c_BinaryenModuleGetDebugInfoFileName ::
-    BinaryenModuleRef -> BinaryenIndex -> IO (Ptr CChar)
+    BinaryenModule -> BinaryenIndex -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenFunctionGetName"
   c_BinaryenFunctionGetName ::
-    BinaryenFunctionRef -> IO (Ptr CChar)
+    BinaryenFunction -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenFunctionGetParams"
   c_BinaryenFunctionGetParams ::
-    BinaryenFunctionRef -> IO BinaryenType
+    BinaryenFunction -> IO BinaryenType
 
 foreign import ccall unsafe "BinaryenFunctionGetResults"
   c_BinaryenFunctionGetResults ::
-    BinaryenFunctionRef -> IO BinaryenType
+    BinaryenFunction -> IO BinaryenType
 
 foreign import ccall unsafe "BinaryenFunctionGetNumVars"
   c_BinaryenFunctionGetNumVars ::
-    BinaryenFunctionRef -> IO BinaryenIndex
+    BinaryenFunction -> IO BinaryenIndex
 
 foreign import ccall unsafe "BinaryenFunctionGetVar"
   c_BinaryenFunctionGetVar ::
-    BinaryenFunctionRef -> BinaryenIndex -> IO BinaryenType
+    BinaryenFunction -> BinaryenIndex -> IO BinaryenType
 
 foreign import ccall unsafe "BinaryenFunctionGetBody"
   c_BinaryenFunctionGetBody ::
-    BinaryenFunctionRef -> IO BinaryenExpressionRef
+    BinaryenFunction -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenFunctionOptimize"
   c_BinaryenFunctionOptimize ::
-    BinaryenFunctionRef -> BinaryenModuleRef -> IO ()
+    BinaryenFunction -> BinaryenModule -> IO ()
 
 foreign import ccall unsafe "BinaryenFunctionRunPasses"
   c_BinaryenFunctionRunPasses ::
-    BinaryenFunctionRef ->
-    BinaryenModuleRef ->
+    BinaryenFunction ->
+    BinaryenModule ->
     Ptr (Ptr CChar) ->
     BinaryenIndex ->
     IO ()
 
 foreign import ccall unsafe "BinaryenFunctionSetDebugLocation"
   c_BinaryenFunctionSetDebugLocation ::
-    BinaryenFunctionRef ->
-    BinaryenExpressionRef ->
+    BinaryenFunction ->
+    BinaryenExpression ->
     BinaryenIndex ->
     BinaryenIndex ->
     BinaryenIndex ->
@@ -1768,83 +1771,83 @@ foreign import ccall unsafe "BinaryenFunctionSetDebugLocation"
 
 foreign import ccall unsafe "BinaryenGlobalGetName"
   c_BinaryenGlobalGetName ::
-    BinaryenGlobalRef -> IO (Ptr CChar)
+    BinaryenGlobal -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenGlobalGetType"
   c_BinaryenGlobalGetType ::
-    BinaryenGlobalRef -> IO BinaryenType
+    BinaryenGlobal -> IO BinaryenType
 
 foreign import ccall unsafe "BinaryenGlobalIsMutable"
   c_BinaryenGlobalIsMutable ::
-    BinaryenGlobalRef -> IO CInt
+    BinaryenGlobal -> IO CInt
 
 foreign import ccall unsafe "BinaryenGlobalGetInitExpr"
   c_BinaryenGlobalGetInitExpr ::
-    BinaryenGlobalRef -> IO BinaryenExpressionRef
+    BinaryenGlobal -> IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenEventGetName"
   c_BinaryenEventGetName ::
-    BinaryenEventRef -> IO (Ptr CChar)
+    BinaryenEvent -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenEventGetAttribute"
   c_BinaryenEventGetAttribute ::
-    BinaryenEventRef -> IO CInt
+    BinaryenEvent -> IO CInt
 
 foreign import ccall unsafe "BinaryenEventGetParams"
   c_BinaryenEventGetParams ::
-    BinaryenEventRef -> IO BinaryenType
+    BinaryenEvent -> IO BinaryenType
 
 foreign import ccall unsafe "BinaryenEventGetResults"
   c_BinaryenEventGetResults ::
-    BinaryenEventRef -> IO BinaryenType
+    BinaryenEvent -> IO BinaryenType
 
 foreign import ccall unsafe "BinaryenFunctionImportGetModule"
   c_BinaryenFunctionImportGetModule ::
-    BinaryenFunctionRef -> IO (Ptr CChar)
+    BinaryenFunction -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenGlobalImportGetModule"
   c_BinaryenGlobalImportGetModule ::
-    BinaryenGlobalRef -> IO (Ptr CChar)
+    BinaryenGlobal -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenEventImportGetModule"
   c_BinaryenEventImportGetModule ::
-    BinaryenEventRef -> IO (Ptr CChar)
+    BinaryenEvent -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenFunctionImportGetBase"
   c_BinaryenFunctionImportGetBase ::
-    BinaryenFunctionRef -> IO (Ptr CChar)
+    BinaryenFunction -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenGlobalImportGetBase"
   c_BinaryenGlobalImportGetBase ::
-    BinaryenGlobalRef -> IO (Ptr CChar)
+    BinaryenGlobal -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenEventImportGetBase"
   c_BinaryenEventImportGetBase ::
-    BinaryenEventRef -> IO (Ptr CChar)
+    BinaryenEvent -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenExportGetKind"
   c_BinaryenExportGetKind ::
-    BinaryenExportRef -> IO BinaryenExternalKind
+    BinaryenExport -> IO BinaryenExternalKind
 
 foreign import ccall unsafe "BinaryenExportGetName"
   c_BinaryenExportGetName ::
-    BinaryenExportRef -> IO (Ptr CChar)
+    BinaryenExport -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenExportGetValue"
   c_BinaryenExportGetValue ::
-    BinaryenExportRef -> IO (Ptr CChar)
+    BinaryenExport -> IO (Ptr CChar)
 
 foreign import ccall unsafe "BinaryenGetNumExports"
   c_BinaryenGetNumExports ::
-    BinaryenModuleRef -> IO Word32
+    BinaryenModule -> IO Word32
 
 foreign import ccall unsafe "BinaryenGetExportByIndex"
   c_BinaryenGetExportByIndex ::
-    BinaryenModuleRef -> BinaryenIndex -> IO BinaryenExportRef
+    BinaryenModule -> BinaryenIndex -> IO BinaryenExport
 
 foreign import ccall unsafe "BinaryenAddCustomSection"
   c_BinaryenAddCustomSection ::
-    BinaryenModuleRef ->
+    BinaryenModule ->
     Ptr CChar ->
     Ptr CChar ->
     BinaryenIndex ->
@@ -1868,54 +1871,52 @@ foreign import ccall unsafe "BinaryenSideEffectAny" c_BinaryenSideEffectAny :: B
 
 foreign import ccall unsafe "BinaryenExpressionGetSideEffects"
   c_BinaryenExpressionGetSideEffects ::
-    BinaryenExpressionRef -> BinaryenFeatures -> IO BinaryenSideEffects
+    BinaryenExpression -> BinaryenFeatures -> IO BinaryenSideEffects
 
-data Relooper
+newtype Relooper = Relooper (Ptr Relooper)
+  deriving newtype (Eq, Show, Storable)
 
-type RelooperRef = Ptr Relooper
-
-data RelooperBlock
-
-type RelooperBlockRef = Ptr RelooperBlock
+newtype RelooperBlock = RelooperBlock (Ptr RelooperBlock)
+  deriving newtype (Eq, Show, Storable)
 
 foreign import ccall unsafe "RelooperCreate"
   c_RelooperCreate ::
-    BinaryenModuleRef -> IO RelooperRef
+    BinaryenModule -> IO Relooper
 
 foreign import ccall unsafe "RelooperAddBlock"
   c_RelooperAddBlock ::
-    RelooperRef -> BinaryenExpressionRef -> IO RelooperBlockRef
+    Relooper -> BinaryenExpression -> IO RelooperBlock
 
 foreign import ccall unsafe "RelooperAddBranch"
   c_RelooperAddBranch ::
-    RelooperBlockRef ->
-    RelooperBlockRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
+    RelooperBlock ->
+    RelooperBlock ->
+    BinaryenExpression ->
+    BinaryenExpression ->
     IO ()
 
 foreign import ccall unsafe "RelooperAddBlockWithSwitch"
   c_RelooperAddBlockWithSwitch ::
-    RelooperRef ->
-    BinaryenExpressionRef ->
-    BinaryenExpressionRef ->
-    IO RelooperBlockRef
+    Relooper ->
+    BinaryenExpression ->
+    BinaryenExpression ->
+    IO RelooperBlock
 
 foreign import ccall unsafe "RelooperAddBranchForSwitch"
   c_RelooperAddBranchForSwitch ::
-    RelooperBlockRef ->
-    RelooperBlockRef ->
+    RelooperBlock ->
+    RelooperBlock ->
     Ptr BinaryenIndex ->
     BinaryenIndex ->
-    BinaryenExpressionRef ->
+    BinaryenExpression ->
     IO ()
 
 foreign import ccall unsafe "RelooperRenderAndDispose"
   c_RelooperRenderAndDispose ::
-    RelooperRef ->
-    RelooperBlockRef ->
+    Relooper ->
+    RelooperBlock ->
     BinaryenIndex ->
-    IO BinaryenExpressionRef
+    IO BinaryenExpression
 
 foreign import ccall unsafe "BinaryenSetAPITracing"
   c_BinaryenSetAPITracing ::
