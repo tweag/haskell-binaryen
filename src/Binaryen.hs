@@ -3,11 +3,41 @@
 -- See <https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h>
 -- for API documentation.
 
-module Binaryen where
+module Binaryen
+  ( module Binaryen,
+    -- * Re-exports
+    Event,
+    Export,
+    Expression,
+    ExpressionId,
+    ExternalKind,
+    Features,
+    Function,
+    Global,
+    Index,
+    Module,
+    Op,
+    Relooper,
+    RelooperBlock,
+    SideEffects,
+    Type,
+  )
+where
 
-import Binaryen.Index
-import Binaryen.Event
-import Binaryen.Global
+import Binaryen.Event (Event(..))
+import Binaryen.Export (Export(..))
+import Binaryen.Expression (Expression(..))
+import Binaryen.ExpressionId (ExpressionId(..))
+import Binaryen.ExternalKind (ExternalKind(..))
+import Binaryen.Features (Features(..))
+import Binaryen.Function (Function(..))
+import Binaryen.Global (Global(..))
+import Binaryen.Index (Index(..))
+import Binaryen.Module (Module(..))
+import Binaryen.Op (Op(..))
+import Binaryen.Relooper (Relooper(..), RelooperBlock(..))
+import Binaryen.SideEffects (SideEffects(..))
+import Binaryen.Type (Type(..))
 import Foreign (Ptr)
 import Foreign.C (CChar(..), CInt(..))
 
