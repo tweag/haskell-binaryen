@@ -2,6 +2,8 @@
 --
 -- See <https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h>
 -- for API documentation.
+--
+-- This module is intended to be imported qualified.
 
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
