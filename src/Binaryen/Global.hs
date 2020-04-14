@@ -34,3 +34,7 @@ foreign import ccall unsafe "BinaryenGlobalGetInitExpr"
 foreign import ccall unsafe "BinaryenGlobalImportGetModule"
   importGetModule ::
     Global -> IO (Ptr CChar)
+
+foreign import ccall unsafe "BinaryenGlobalImportGetBase"
+  globalImportGetBase ::
+    Global -> IO (Ptr CChar)
