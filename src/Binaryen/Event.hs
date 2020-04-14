@@ -33,3 +33,7 @@ foreign import ccall unsafe "BinaryenEventGetResults"
 foreign import ccall unsafe "BinaryenEventImportGetModule"
   importGetModule ::
     Event -> IO (Ptr CChar)
+
+foreign import ccall unsafe "BinaryenEventImportGetBase"
+  eventImportGetBase ::
+    Event -> IO (Ptr CChar)

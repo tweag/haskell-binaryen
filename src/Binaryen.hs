@@ -79,14 +79,6 @@ foreign import ccall unsafe "BinaryenSetOneCallerInlineMaxSize"
   setOneCallerInlineMaxSize ::
     Index -> IO ()
 
-foreign import ccall unsafe "BinaryenGlobalImportGetBase"
-  globalImportGetBase ::
-    Global -> IO (Ptr CChar)
-
-foreign import ccall unsafe "BinaryenEventImportGetBase"
-  eventImportGetBase ::
-    Event -> IO (Ptr CChar)
-
 foreign import ccall unsafe "BinaryenSetAPITracing"
   setAPITracing ::
     CInt -> IO ()
