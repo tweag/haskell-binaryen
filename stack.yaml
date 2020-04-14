@@ -1,5 +1,6 @@
 resolver: lts-15.7
 
 nix:
+  path: [nixpkgs=./nixpkgs.nix]
   packages:
     - binaryen
