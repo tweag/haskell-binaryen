@@ -23,7 +23,7 @@ c-sources:
 ghc-options: -Wall
 
 dependencies:
-  - base
+  - base < 5
 
 library:
   source-dirs: src
