@@ -1,9 +1,10 @@
 # Haskell bindings for [binaryen][binaryen]
 
-[Binaryen][binaryen] is a compiler and toolchain infrastructure library for
-WebAssembly, written in C++. This package defines complete bindings to the
-[Binaryen C API][binaryen-api], and can be useful to building WebAssembly
-toolchains in Haskell.
+[![Build status](https://badge.buildkite.com/f96af58baa5635b8cdef87abddc9070765fa4f562cc6cb8f47.svg?branch=master)](https://buildkite.com/tweag-1/haskell-binaryen)
+
+[Binaryen][binaryen] is a compiler and toolchain infrastructure
+library for WebAssembly, written in C++. This package defines
+bindings to the [Binaryen API][binaryen-api].
 
 [binaryen]: https://github.com/WebAssembly/binaryen
 [binaryen-api]: https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h

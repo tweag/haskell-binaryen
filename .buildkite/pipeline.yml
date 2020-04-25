@@ -1,0 +1,5 @@
+steps:
+  - label: "Build and test"
+    command: |
+      nix-shell --pure --run "stack test"
+    timeout: 100
