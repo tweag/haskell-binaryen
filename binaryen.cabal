@@ -4,12 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 40cc0a5eb6ca4a5799291a6d00ba13156956f3eaee86026aadc94fb81d6cb63f
+-- hash: 03e2312883b6c64eed02f51b849ace2fd17c7d87de0c4e12cfbd2f53482ea034
 
 name:           binaryen
-version:        0.0.1
+version:        0.0.1.0
+synopsis:       Haskell bindings to binaryen
+description:    Haskell bindings to [binaryen](https://github.com/WebAssembly/binaryen). Provides complete bindings to the C API, which can be useful for building WebAssembly toolchains in Haskell.
 category:       Compiler
-stability:      alpha
 homepage:       https://github.com/tweag/asterius#readme
 bug-reports:    https://github.com/tweag/asterius/issues
 maintainer:     Shao Cheng <cheng.shao@tweag.io>

@@ -1,4 +1,4 @@
-resolver: lts-15.7
+resolver: lts-15.9
 
 nix:
   path: [nixpkgs=./nixpkgs.nix]
