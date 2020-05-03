@@ -17,7 +17,7 @@ import Binaryen.Type
 import Data.Int (Int8, Int32, Int64)
 import Data.Word (Word32, Word8)
 import Foreign (Ptr, Storable)
-import Foreign.C (CChar(..), CDouble(..), CFloat(..), CInt(..))
+import Foreign.C (CChar(..), CDouble(..), CFloat(..), CInt(..), CUIntPtr(..))
 
 newtype Expression = Expression (Ptr Expression)
   deriving (Eq, Show, Storable)

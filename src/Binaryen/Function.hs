@@ -14,7 +14,7 @@ import Binaryen.Index
 import {-# SOURCE #-} Binaryen.Module
 import Binaryen.Type
 import Foreign (Ptr, Storable)
-import Foreign.C (CChar(..))
+import Foreign.C (CChar(..), CUIntPtr(..))
 
 newtype Function = Function (Ptr Function)
   deriving (Eq, Show, Storable)

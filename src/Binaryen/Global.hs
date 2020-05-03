@@ -12,7 +12,7 @@ module Binaryen.Global where
 import Binaryen.Type
 import Binaryen.Expression
 import Foreign (Ptr, Storable)
-import Foreign.C (CChar(..), CInt(..))
+import Foreign.C (CChar(..), CInt(..), CUIntPtr(..))
 
 newtype Global = Global (Ptr Global)
   deriving (Eq, Show, Storable)

@@ -20,7 +20,7 @@ import Binaryen.Type
 import Data.Int (Int8)
 import Data.Word (Word8, Word32)
 import Foreign (Ptr, Storable)
-import Foreign.C (CChar(..), CInt(..), CSize(..))
+import Foreign.C (CChar(..), CInt(..), CSize(..), CUIntPtr(..))
 
 newtype Module = Module (Ptr Module)
   deriving (Eq, Show, Storable)
