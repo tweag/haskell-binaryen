@@ -11,7 +11,7 @@ module Binaryen.Event where
 
 import Binaryen.Type
 import Foreign (Ptr, Storable)
-import Foreign.C (CChar(..), CInt(..))
+import Foreign.C (CChar(..), CInt(..), CUIntPtr(..))
 
 newtype Event = Event (Ptr Event)
   deriving (Eq, Show, Storable)

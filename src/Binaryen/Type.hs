@@ -11,8 +11,9 @@ module Binaryen.Type where
 
 import Data.Word (Word32)
 import Foreign (Ptr, Storable)
+import Foreign.C (CUIntPtr(..))
 
-newtype Type = Type Word32
+newtype Type = Type CUIntPtr
   deriving (Eq, Show, Storable)
 
 foreign import ccall unsafe "BinaryenTypeNone" none :: Type
