@@ -17,7 +17,7 @@ it's no less than the minimum version listed below.
 
 | Haskell bindings version | Minimum Binaryen version |
 |--------------------------|--------------------------|
-| 0.0.1.0                  | version_91               |
+| 0.0.1.*                  | version_91               |
 
 
 ## How to build

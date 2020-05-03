@@ -1,12 +1,12 @@
 name: binaryen
-version: 0.0.1.0
+version: 0.0.1.1
 synopsis: Haskell bindings to binaryen
 description: Haskell bindings to [binaryen](https://github.com/WebAssembly/binaryen). Provides complete bindings to the C API, which can be useful for building WebAssembly toolchains in Haskell.
 category: Compiler
 maintainer: Shao Cheng <cheng.shao@tweag.io>
 copyright: (c) 2018 Tweag I/O
 license: BSD3
-github: tweag/asterius
+github: tweag/haskell-binaryen
 
 extra-source-files:
   - CHANGELOG.md
