@@ -111,10 +111,6 @@ foreign import ccall unsafe "BinaryenSetOneCallerInlineMaxSize"
   setOneCallerInlineMaxSize ::
     Index -> IO ()
 
-foreign import ccall unsafe "BinaryenSetAPITracing"
-  setAPITracing ::
-    CInt -> IO ()
-
 foreign import ccall unsafe "BinaryenSetColorsEnabled"
   setColorsEnabled ::
     CInt -> IO ()
