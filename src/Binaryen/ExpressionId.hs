@@ -60,5 +60,4 @@ foreign import ccall unsafe "BinaryenTryId" tryId :: ExpressionId
 foreign import ccall unsafe "BinaryenThrowId" throwId :: ExpressionId
 foreign import ccall unsafe "BinaryenRethrowId" rethrowId :: ExpressionId
 foreign import ccall unsafe "BinaryenBrOnExnId" brOnExnId :: ExpressionId
-foreign import ccall unsafe "BinaryenPushId" pushId :: ExpressionId
 foreign import ccall unsafe "BinaryenPopId" popId :: ExpressionId

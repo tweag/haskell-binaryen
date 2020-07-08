@@ -23,7 +23,7 @@ foreign import ccall unsafe "BinaryenTypeFloat32" float32 :: Type
 foreign import ccall unsafe "BinaryenTypeFloat64" float64 :: Type
 foreign import ccall unsafe "BinaryenTypeVec128" vec128 :: Type
 foreign import ccall unsafe "BinaryenTypeFuncref" funcref :: Type
-foreign import ccall unsafe "BinaryenTypeAnyref" anyref :: Type
+foreign import ccall unsafe "BinaryenTypeExternref" externref :: Type
 foreign import ccall unsafe "BinaryenTypeNullref" nullref :: Type
 foreign import ccall unsafe "BinaryenTypeExnref" exnref :: Type
 foreign import ccall unsafe "BinaryenTypeUnreachable" unreachable :: Type
