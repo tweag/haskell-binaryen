@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 251c6e574c5ec09d1d10b696369cf63c067062fe0a5765714a59ed52207d0c15
+-- hash: 6906b8b54023ddd731b7917d4bf295ce42448ff01ed32db98de00b80e4aa5f82
 
 name:           binaryen
 version:        0.0.1.1
@@ -13,7 +13,7 @@ description:    Haskell bindings to [binaryen](https://github.com/WebAssembly/bi
 category:       Compiler
 homepage:       https://github.com/tweag/haskell-binaryen#readme
 bug-reports:    https://github.com/tweag/haskell-binaryen/issues
-maintainer:     Shao Cheng <cheng.shao@tweag.io>
+maintainer:     Cheng Shao <cheng.shao@tweag.io>
 copyright:      (c) 2018 Tweag I/O
 license:        BSD3
 license-file:   LICENSE
