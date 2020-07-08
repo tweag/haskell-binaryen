@@ -6,8 +6,8 @@ on:
 
 jobs:
 
-  stack:
-    name: stack
+  build:
+    name: build
     runs-on: ubuntu-20.04
     steps:
 
@@ -20,4 +20,7 @@ jobs:
 
       - name: build
         run: |
+          mkdir ~/.stack
+          printf "nix:\n  enable: true\n" > ~/.stack
+
           nix-shell --pure --run "stack test"
