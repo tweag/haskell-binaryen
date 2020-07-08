@@ -4,5 +4,11 @@ with pkgs;
 
 mkShell {
   name = "haskell-binaryen";
-  buildInputs = [ nix stack ];
+  buildInputs = [
+    binaryen
+    cabal-install
+    haskell.compiler.ghc8101
+    nix
+    stack
+  ];
 }
