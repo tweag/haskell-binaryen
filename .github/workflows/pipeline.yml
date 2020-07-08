@@ -21,6 +21,6 @@ jobs:
       - name: build
         run: |
           mkdir ~/.stack
-          printf "nix:\n  enable: true\n" > ~/.stack
+          printf "nix:\n  enable: true\n" > ~/.stack/config.yaml
 
           nix-shell --pure --run "stack test"
