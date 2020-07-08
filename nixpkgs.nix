@@ -1,7 +1,6 @@
 let
-  # 2020-04-03
-  rev = "4dc8447c55fe5262bad1019121a8e6d3f9e1e71f";
-  sha256 = "113961iip25h3visfpszrnvwwclkvkgj4x9c7inlh90vcfrk325p";
+  rev = "4855aa62fa13052fb1a3daea68971503ab07a744";
+  sha256 = "17sk264qw397zzw12x11ry5vj9qidgbmjsyj544ysg857b4qq9sj";
 in
 import (fetchTarball {
   inherit sha256;

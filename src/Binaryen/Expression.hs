@@ -425,12 +425,6 @@ foreign import ccall unsafe "BinaryenBrOnExn"
     Expression ->
     IO Expression
 
-foreign import ccall unsafe "BinaryenPush"
-  push ::
-    Module ->
-    Expression ->
-    IO Expression
-
 foreign import ccall unsafe "BinaryenPop"
   pop ::
     Module -> Type -> IO Expression
@@ -933,8 +927,4 @@ foreign import ccall unsafe "BinaryenBrOnExnGetName"
 
 foreign import ccall unsafe "BinaryenBrOnExnGetExnref"
   brOnExnGetExnref ::
-    Expression -> IO Expression
-
-foreign import ccall unsafe "BinaryenPushGetValue"
-  pushGetValue ::
     Expression -> IO Expression

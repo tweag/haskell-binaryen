@@ -1,0 +1,70 @@
+name: pipeline
+
+on:
+  - push
+  - pull_request
+
+jobs:
+
+  build:
+    name: build
+    runs-on: ubuntu-20.04
+    steps:
+
+      - uses: cachix/install-nix-action@v10
+        with:
+          skip_adding_nixpkgs_channel: true
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: build
+        run: |
+          mkdir ~/.stack
+          printf "nix:\n  enable: true\n" > ~/.stack/config.yaml
+
+          nix-shell --pure --run "stack test"
+
+  sdist:
+    name: sdist
+    runs-on: ubuntu-20.04
+    steps:
+
+      - uses: cachix/install-nix-action@v10
+        with:
+          skip_adding_nixpkgs_channel: true
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: sdist
+        run: |
+          nix-shell --pure --run "cabal check && cabal v2-sdist all"
+
+      - name: upload-artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: sdist
+          path: dist-newstyle/sdist/*.tar.gz
+
+  haddock:
+    name: haddock
+    runs-on: ubuntu-20.04
+    steps:
+
+      - uses: cachix/install-nix-action@v10
+        with:
+          skip_adding_nixpkgs_channel: true
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: haddock
+        run: |
+          nix-shell --pure --run "cabal v2-haddock --haddock-for-hackage --haddock-hyperlink-source --haddock-quickjump all"
+
+      - name: upload-artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: haddock
+          path: dist-newstyle/*-docs.tar.gz
