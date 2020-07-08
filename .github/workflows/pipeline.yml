@@ -1,0 +1,23 @@
+name: pipeline
+
+on:
+  - push
+  - pull_request
+
+jobs:
+
+  stack:
+    name: stack
+    runs-on: ubuntu-20.04
+    steps:
+
+      - uses: cachix/install-nix-action@v10
+        with:
+          skip_adding_nixpkgs_channel: true
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: build
+        run: |
+          nix-shell --pure --run "stack test"
