@@ -449,7 +449,7 @@ foreign import ccall unsafe "BinaryenBlockGetNumChildren"
   blockGetNumChildren ::
     Expression -> IO Index
 
-foreign import ccall unsafe "BinaryenBlockGetChild"
+foreign import ccall unsafe "BinaryenBlockGetChildAt"
   blockGetChild ::
     Expression -> Index -> IO Expression
 
@@ -489,7 +489,7 @@ foreign import ccall unsafe "BinaryenSwitchGetNumNames"
   switchGetNumNames ::
     Expression -> IO Index
 
-foreign import ccall unsafe "BinaryenSwitchGetName"
+foreign import ccall unsafe "BinaryenSwitchGetNameAt"
   switchGetName ::
     Expression -> Index -> IO (Ptr CChar)
 
@@ -513,7 +513,7 @@ foreign import ccall unsafe "BinaryenCallGetNumOperands"
   callGetNumOperands ::
     Expression -> IO Index
 
-foreign import ccall unsafe "BinaryenCallGetOperand"
+foreign import ccall unsafe "BinaryenCallGetOperandAt"
   callGetOperand ::
     Expression -> Index -> IO Expression
 
@@ -525,7 +525,7 @@ foreign import ccall unsafe "BinaryenCallIndirectGetNumOperands"
   callIndirectGetNumOperands ::
     Expression -> IO Index
 
-foreign import ccall unsafe "BinaryenCallIndirectGetOperand"
+foreign import ccall unsafe "BinaryenCallIndirectGetOperandAt"
   callIndirectGetOperand ::
     Expression -> Index -> IO Expression
 
@@ -569,7 +569,7 @@ foreign import ccall unsafe "BinaryenHostGetNumOperands"
   hostGetNumOperands ::
     Expression -> IO Index
 
-foreign import ccall unsafe "BinaryenHostGetOperand"
+foreign import ccall unsafe "BinaryenHostGetOperandAt"
   hostGetOperand ::
     Expression -> Index -> IO Expression
 
@@ -905,7 +905,7 @@ foreign import ccall unsafe "BinaryenThrowGetEvent"
   throwGetEvent ::
     Expression -> IO (Ptr CChar)
 
-foreign import ccall unsafe "BinaryenThrowGetOperand"
+foreign import ccall unsafe "BinaryenThrowGetOperandAt"
   throwGetOperand ::
     Expression -> Index -> IO Expression
 
