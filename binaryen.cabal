@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f6057bbdb94c86826246804c0ebc4e4201ba42f10aef683bb852f11dfd961045
+-- hash: c6dda58fc71ff980baacba8cebb211dfae6ba9a6099d849dd9f830555bb86cf2
 
 name:           binaryen
-version:        0.0.2.0
+version:        0.0.3.0
 synopsis:       Haskell bindings to binaryen
 description:    Haskell bindings to [binaryen](https://github.com/WebAssembly/binaryen). Provides complete bindings to the C API, which can be useful for building WebAssembly toolchains in Haskell.
 category:       Compiler
