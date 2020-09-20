@@ -1,4 +1,4 @@
-{pkgs ? import ./nixpkgs.nix {} }:
+{ pkgs ? import ./nixpkgs.nix { } }:
 
 with pkgs;
 
@@ -7,7 +7,7 @@ mkShell {
   buildInputs = [
     binaryen
     cabal-install
-    haskell.compiler.ghc8101
+    haskell.compiler.ghc884
     nix
     stack
   ];
