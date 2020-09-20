@@ -1,12 +1,11 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 -- | Expressions.
 --
 -- See <https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h>
 -- for API documentation.
 --
 -- This module is intended to be imported qualified.
-
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module Binaryen.Expression where
 
 import Binaryen.ExpressionId
@@ -14,10 +13,26 @@ import Binaryen.Index
 import {-# SOURCE #-} Binaryen.Module
 import Binaryen.Op
 import Binaryen.Type
-import Data.Int (Int8, Int32, Int64)
-import Data.Word (Word32, Word8)
-import Foreign (Ptr, Storable)
-import Foreign.C (CChar(..), CDouble(..), CFloat(..), CInt(..), CUIntPtr(..))
+import Data.Int
+  ( Int32,
+    Int64,
+    Int8,
+  )
+import Data.Word
+  ( Word32,
+    Word8,
+  )
+import Foreign
+  ( Ptr,
+    Storable,
+  )
+import Foreign.C
+  ( CChar (..),
+    CDouble (..),
+    CFloat (..),
+    CInt (..),
+    CUIntPtr (..),
+  )
 
 newtype Expression = Expression (Ptr Expression)
   deriving (Eq, Show, Storable)
@@ -384,7 +399,9 @@ foreign import ccall unsafe "BinaryenMemoryFill"
 
 foreign import ccall unsafe "BinaryenRefNull"
   refNull ::
-    Module -> IO Expression
+    Module ->
+    Type ->
+    IO Expression
 
 foreign import ccall unsafe "BinaryenRefIsNull"
   refIsNull ::
