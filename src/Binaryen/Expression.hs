@@ -239,14 +239,9 @@ foreign import ccall unsafe "BinaryenReturn"
     Expression ->
     IO Expression
 
-foreign import ccall unsafe "BinaryenHost"
-  host ::
-    Module ->
-    Op ->
-    Ptr CChar ->
-    Ptr Expression ->
-    Index ->
-    IO Expression
+foreign import ccall unsafe "BinaryenMemorySize" memorySize :: Module -> IO Expression
+
+foreign import ccall unsafe "BinaryenMemoryGrow" memoryGrow :: Module -> Expression -> IO Expression
 
 foreign import ccall unsafe "BinaryenNop"
   nop ::
@@ -573,22 +568,6 @@ foreign import ccall unsafe "BinaryenGlobalSetGetName"
 foreign import ccall unsafe "BinaryenGlobalSetGetValue"
   globalSetGetValue ::
     Expression -> IO Expression
-
-foreign import ccall unsafe "BinaryenHostGetOp"
-  hostGetOp ::
-    Expression -> IO Op
-
-foreign import ccall unsafe "BinaryenHostGetNameOperand"
-  hostGetNameOperand ::
-    Expression -> IO (Ptr CChar)
-
-foreign import ccall unsafe "BinaryenHostGetNumOperands"
-  hostGetNumOperands ::
-    Expression -> IO Index
-
-foreign import ccall unsafe "BinaryenHostGetOperandAt"
-  hostGetOperand ::
-    Expression -> Index -> IO Expression
 
 foreign import ccall unsafe "BinaryenLoadIsAtomic"
   loadIsAtomic ::
