@@ -1,13 +1,10 @@
 # Haskell bindings for [binaryen][binaryen]
 
-[![Build status](https://badge.buildkite.com/f96af58baa5635b8cdef87abddc9070765fa4f562cc6cb8f47.svg?branch=master)](https://buildkite.com/tweag-1/haskell-binaryen)
+![](https://github.com/tweag/haskell-binaryen/workflows/pipeline/badge.svg?branch=master)
 
-[Binaryen][binaryen] is a compiler and toolchain infrastructure
-library for WebAssembly, written in C++. This package defines
-bindings to the [Binaryen API][binaryen-api].
-
-[binaryen]: https://github.com/WebAssembly/binaryen
-[binaryen-api]: https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h
+[Binaryen][binaryen] is a compiler and toolchain infrastructure library for
+WebAssembly, written in C++. This package defines bindings to the [Binaryen C
+API][binaryen-api].
 
 ## Versioning
 
@@ -20,6 +17,7 @@ it's no less than the minimum version listed below.
 | 0.0.1.*                  | version_91               |
 | 0.0.2.*                  | version_94               |
 | 0.0.3.*                  | version_96               |
+| 0.0.4.*                  | version_97               |
 
 
 ## How to build
@@ -34,5 +32,7 @@ Then,
 $ stack --nix build
 ```
 
-[nix]: https://nixos.org/nix/
-[stack]: https://docs.haskellstack.org/en/stable/README/
+[binaryen]: https://github.com/WebAssembly/binaryen
+[binaryen-api]: https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h
+[nix]: https://nixos.org/nix
+[stack]: https://docs.haskellstack.org/en/stable/README

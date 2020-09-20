@@ -1,12 +1,11 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 -- | Expressions.
 --
 -- See <https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h>
 -- for API documentation.
 --
 -- This module is intended to be imported qualified.
-
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module Binaryen.Expression where
 
 import Binaryen.ExpressionId
@@ -14,10 +13,26 @@ import Binaryen.Index
 import {-# SOURCE #-} Binaryen.Module
 import Binaryen.Op
 import Binaryen.Type
-import Data.Int (Int8, Int32, Int64)
-import Data.Word (Word32, Word8)
-import Foreign (Ptr, Storable)
-import Foreign.C (CChar(..), CDouble(..), CFloat(..), CInt(..), CUIntPtr(..))
+import Data.Int
+  ( Int32,
+    Int64,
+    Int8,
+  )
+import Data.Word
+  ( Word32,
+    Word8,
+  )
+import Foreign
+  ( Ptr,
+    Storable,
+  )
+import Foreign.C
+  ( CChar (..),
+    CDouble (..),
+    CFloat (..),
+    CInt (..),
+    CUIntPtr (..),
+  )
 
 newtype Expression = Expression (Ptr Expression)
   deriving (Eq, Show, Storable)
@@ -224,14 +239,9 @@ foreign import ccall unsafe "BinaryenReturn"
     Expression ->
     IO Expression
 
-foreign import ccall unsafe "BinaryenHost"
-  host ::
-    Module ->
-    Op ->
-    Ptr CChar ->
-    Ptr Expression ->
-    Index ->
-    IO Expression
+foreign import ccall unsafe "BinaryenMemorySize" memorySize :: Module -> IO Expression
+
+foreign import ccall unsafe "BinaryenMemoryGrow" memoryGrow :: Module -> Expression -> IO Expression
 
 foreign import ccall unsafe "BinaryenNop"
   nop ::
@@ -384,7 +394,9 @@ foreign import ccall unsafe "BinaryenMemoryFill"
 
 foreign import ccall unsafe "BinaryenRefNull"
   refNull ::
-    Module -> IO Expression
+    Module ->
+    Type ->
+    IO Expression
 
 foreign import ccall unsafe "BinaryenRefIsNull"
   refIsNull ::
@@ -556,22 +568,6 @@ foreign import ccall unsafe "BinaryenGlobalSetGetName"
 foreign import ccall unsafe "BinaryenGlobalSetGetValue"
   globalSetGetValue ::
     Expression -> IO Expression
-
-foreign import ccall unsafe "BinaryenHostGetOp"
-  hostGetOp ::
-    Expression -> IO Op
-
-foreign import ccall unsafe "BinaryenHostGetNameOperand"
-  hostGetNameOperand ::
-    Expression -> IO (Ptr CChar)
-
-foreign import ccall unsafe "BinaryenHostGetNumOperands"
-  hostGetNumOperands ::
-    Expression -> IO Index
-
-foreign import ccall unsafe "BinaryenHostGetOperandAt"
-  hostGetOperand ::
-    Expression -> Index -> IO Expression
 
 foreign import ccall unsafe "BinaryenLoadIsAtomic"
   loadIsAtomic ::
