@@ -21,7 +21,7 @@ include-dirs:
   - binaryen/src
   - binaryen/third_party/llvm-project/include
 
-cpp-options:
+cxx-options:
   - -DBUILD_LLVM_DWARF
   - -D_GNU_SOURCE
   - -D_DEBUG
@@ -29,8 +29,6 @@ cpp-options:
   - -D__STDC_FORMAT_MACROS
   - -D__STDC_LIMIT_MACROS
   - -UNDEBUG
-
-cxx-options:
   - -std=c++14
   - -Wall
   - -Wextra
