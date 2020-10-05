@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1a3e20e01c791f7684e70d16af7ba59e2b0cd545f995fb75aedd42767e3d5c9d
+-- hash: 2d6c06277e7ca90f0ee048513f4a488115bc67c8fcfb71a13971dfd32e8ae64d
 
 name:           binaryen
 version:        0.0.5.0
@@ -1899,12 +1899,14 @@ library
       Binaryen.Type
   other-modules:
       Paths_binaryen
+  autogen-modules:
+      Paths_binaryen
   hs-source-dirs:
       src
   ghc-options: -Wall
   cpp-options: -DBUILD_LLVM_DWARF -UNDEBUG
-  cc-options: -std=c11 -Wall -Wextra -fPIC -O2
-  cxx-options: -std=c++14 -Wall -Wextra -Wno-unused-parameter -fno-omit-frame-pointer -Wno-implicit-int-float-conversion -Wno-unknown-warning-option -Wswitch -fPIC -O2
+  cc-options: -std=c11 -Wall -Wextra -fPIC
+  cxx-options: -std=c++14 -Wall -Wextra -Wno-unused-parameter -fno-omit-frame-pointer -Wno-implicit-int-float-conversion -Wno-unknown-warning-option -Wswitch -fPIC
   include-dirs:
       binaryen/src
       binaryen/third_party/llvm-project/include

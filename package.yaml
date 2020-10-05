@@ -35,7 +35,6 @@ cxx-options:
   - -Wno-unknown-warning-option
   - -Wswitch
   - -fPIC
-  - -O2
 
 cxx-sources:
   - binaryen/src/*.cpp
@@ -53,7 +52,6 @@ cc-options:
   - -Wall
   - -Wextra
   - -fPIC
-  - -O2
 
 c-sources:
   - cbits/wrappers.c
@@ -65,3 +63,5 @@ dependencies:
 
 library:
   source-dirs: src
+  generated-other-modules:
+    - Paths_binaryen
