@@ -6,8 +6,8 @@ on:
 
 jobs:
 
-  build:
-    name: stack-${{ matrix.os }}
+  build-nix:
+    name: stack-nix-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -15,7 +15,21 @@ jobs:
         os:
           - ubuntu-20.04
           - macos-10.15
-          - windows-2019
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: setup-nix
+        uses: cachix/install-nix-action@v11
+
+      - name: test
+        run: |
+          nix-shell --run "stack test --flag binaryen:system-binaryen && stack test"
+
+  build-windows:
+    name: stack-windows
+    runs-on: windows-2019
     steps:
 
       - name: checkout
@@ -28,29 +42,8 @@ jobs:
           enable-stack: true
           stack-no-global: true
 
-      - name: setup-binaryen-ubuntu
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      - name: test
         run: |
-          curl \
-            -o /tmp/binaryen.deb \
-            http://deb.debian.org/debian/pool/main/b/binaryen/binaryen_97-1_amd64.deb
-          sudo dpkg -i /tmp/binaryen.deb
-          rm /tmp/binaryen.deb
-
-      - name: setup-binaryen-macos
-        if: ${{ startsWith(matrix.os, 'macos') }}
-        run: |
-          brew update
-          brew install binaryen@97
-
-      - name: setup-binaryen-windows
-        if: ${{ startsWith(matrix.os, 'windows') }}
-        run: |
-          stack exec -- pacman -Syu --needed --noconfirm mingw-w64-x86_64-binaryen
-
-      - name: build
-        run: |
-          stack test --flag binaryen:system-binaryen
           stack test
 
   sdist:

@@ -1,4 +1,16 @@
 {
+    "binaryen": {
+        "branch": "version_97",
+        "description": "Compiler infrastructure and toolchain library for WebAssembly",
+        "homepage": "",
+        "owner": "WebAssembly",
+        "repo": "binaryen",
+        "rev": "edc03a69da757e9b106b67647d7914b94680b97a",
+        "sha256": "04dnv0f93d487d1p974fz2i249fxc1x2pi3pjhxpybmjs7dgzm02",
+        "type": "tarball",
+        "url": "https://github.com/WebAssembly/binaryen/archive/edc03a69da757e9b106b67647d7914b94680b97a.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "niv": {
         "branch": "master",
         "description": "Easy dependency management for Nix projects",
