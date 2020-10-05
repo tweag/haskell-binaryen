@@ -18,6 +18,9 @@ jobs:
           - windows-2019
     steps:
 
+      - name: checkout
+        uses: actions/checkout@v2
+
       - name: setup-haskell
         uses: actions/setup-haskell@main
         with:
@@ -37,15 +40,13 @@ jobs:
       - name: setup-binaryen-macos
         if: ${{ startsWith(matrix.os, 'macos') }}
         run: |
+          brew update
           brew install binaryen@97
 
       - name: setup-binaryen-windows
         if: ${{ startsWith(matrix.os, 'windows') }}
         run: |
           stack exec -- pacman -Syu --needed --noconfirm mingw-w64-x86_64-binaryen
-
-      - name: checkout
-        uses: actions/checkout@v2
 
       - name: build
         run: |
