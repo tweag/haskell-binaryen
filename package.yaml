@@ -14,41 +14,51 @@ extra-source-files:
   - LICENSE
   - README.md
 
+flags:
+  system-binaryen:
+    description: Link against system-wide binaryen
+    manual: True
+    default: False
+
+when:
+  - condition: flag(system-binaryen)
+    then:
+      extra-libraries:
+        - binaryen
+    else:
+      include-dirs:
+        - binaryen/src
+        - binaryen/third_party/llvm-project/include
+      cxx-options:
+        - -DBUILD_LLVM_DWARF
+        - -D_GNU_SOURCE
+        - -D_DEBUG
+        - -D__STDC_CONSTANT_MACROS
+        - -D__STDC_FORMAT_MACROS
+        - -D__STDC_LIMIT_MACROS
+        - -UNDEBUG
+        - -std=c++14
+        - -Wall
+        - -Wextra
+        - -Wno-unused-parameter
+        - -fno-omit-frame-pointer
+        - -Wno-implicit-int-float-conversion
+        - -Wno-unknown-warning-option
+        - -Wswitch
+        - -fPIC
+      cxx-sources:
+        - binaryen/src/*.cpp
+        - binaryen/src/asmjs/*.cpp
+        - binaryen/src/cfg/*.cpp
+        - binaryen/src/emscripten-optimizer/*.cpp
+        - binaryen/src/ir/*.cpp
+        - binaryen/src/passes/*.cpp
+        - binaryen/src/support/*.cpp
+        - binaryen/src/wasm/*.cpp
+        - binaryen/third_party/llvm-project/**/*.cpp
+
 extra-libraries:
   - stdc++
-
-include-dirs:
-  - binaryen/src
-  - binaryen/third_party/llvm-project/include
-
-cxx-options:
-  - -DBUILD_LLVM_DWARF
-  - -D_GNU_SOURCE
-  - -D_DEBUG
-  - -D__STDC_CONSTANT_MACROS
-  - -D__STDC_FORMAT_MACROS
-  - -D__STDC_LIMIT_MACROS
-  - -UNDEBUG
-  - -std=c++14
-  - -Wall
-  - -Wextra
-  - -Wno-unused-parameter
-  - -fno-omit-frame-pointer
-  - -Wno-implicit-int-float-conversion
-  - -Wno-unknown-warning-option
-  - -Wswitch
-  - -fPIC
-
-cxx-sources:
-  - binaryen/src/*.cpp
-  - binaryen/src/asmjs/*.cpp
-  - binaryen/src/cfg/*.cpp
-  - binaryen/src/emscripten-optimizer/*.cpp
-  - binaryen/src/ir/*.cpp
-  - binaryen/src/passes/*.cpp
-  - binaryen/src/support/*.cpp
-  - binaryen/src/wasm/*.cpp
-  - binaryen/third_party/llvm-project/**/*.cpp
 
 cc-options:
   - -std=c11
