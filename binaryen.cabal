@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2d6c06277e7ca90f0ee048513f4a488115bc67c8fcfb71a13971dfd32e8ae64d
+-- hash: bc28a5591c2916e1e853e237408fd8328350a7e938ddb92e70ad66c18a45ed36
 
 name:           binaryen
 version:        0.0.5.0
@@ -1904,7 +1904,7 @@ library
   hs-source-dirs:
       src
   ghc-options: -Wall
-  cpp-options: -DBUILD_LLVM_DWARF -UNDEBUG
+  cpp-options: -DBUILD_LLVM_DWARF -D_GNU_SOURCE -D_DEBUG -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -UNDEBUG
   cc-options: -std=c11 -Wall -Wextra -fPIC
   cxx-options: -std=c++14 -Wall -Wextra -Wno-unused-parameter -fno-omit-frame-pointer -Wno-implicit-int-float-conversion -Wno-unknown-warning-option -Wswitch -fPIC
   include-dirs:

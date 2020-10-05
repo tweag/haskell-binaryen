@@ -23,6 +23,11 @@ include-dirs:
 
 cpp-options:
   - -DBUILD_LLVM_DWARF
+  - -D_GNU_SOURCE
+  - -D_DEBUG
+  - -D__STDC_CONSTANT_MACROS
+  - -D__STDC_FORMAT_MACROS
+  - -D__STDC_LIMIT_MACROS
   - -UNDEBUG
 
 cxx-options:
