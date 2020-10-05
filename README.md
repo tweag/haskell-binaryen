@@ -8,8 +8,16 @@ API][binaryen-api].
 
 ## Versioning
 
-Binaryen evolves fast and can introduce C API changes in every release. Before
-building the Haskell bindings, please check the Binaryen version and make sure
+Starting from `0.0.5.0`, we bundle the C++ sources of `binaryen` with this
+package, so the package can be built and used as long as the C++ toolchain is
+present in the build environment.
+
+| Haskell bindings version | Bundled Binaryen version |
+|--------------------------|--------------------------|
+| 0.0.5.*                  | version_97               |
+
+Older versions of this package links against the system-wide `binaryen` library,
+so before building the package, please check the Binaryen version and make sure
 it's no less than the minimum version listed below.
 
 | Haskell bindings version | Minimum Binaryen version |
@@ -19,11 +27,9 @@ it's no less than the minimum version listed below.
 | 0.0.3.*                  | version_96               |
 | 0.0.4.*                  | version_97               |
 
-
 ## How to build
 
-This package relies on the system-provided Binaryen library. As long as that's
-available, a simple `stack build` or `cabal build` command should work.
+A simple `stack build` or `cabal build` command should work.
 
 `Nix`-based build is also supported. Install [Stack][stack] and [Nix][nix].
 Then,

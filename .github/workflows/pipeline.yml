@@ -7,8 +7,15 @@ on:
 jobs:
 
   build:
-    name: build
-    runs-on: ubuntu-20.04
+    name: stack-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+          - macos-10.15
+          - windows-2019
     steps:
 
       - name: setup-haskell
@@ -17,14 +24,6 @@ jobs:
           stack-version: 2.3.3
           enable-stack: true
           stack-no-global: true
-
-      - name: setup-binaryen
-        run: |
-          curl \
-            -o /tmp/binaryen.deb \
-            http://deb.debian.org/debian/pool/main/b/binaryen/binaryen_97-1_amd64.deb
-          sudo dpkg -i /tmp/binaryen.deb
-          rm /tmp/binaryen.deb
 
       - name: checkout
         uses: actions/checkout@v2
@@ -43,14 +42,6 @@ jobs:
         with:
           ghc-version: 8.10.2
           cabal-version: 3.2.0.0
-
-      - name: setup-binaryen
-        run: |
-          curl \
-            -o /tmp/binaryen.deb \
-            http://deb.debian.org/debian/pool/main/b/binaryen/binaryen_97-1_amd64.deb
-          sudo dpkg -i /tmp/binaryen.deb
-          rm /tmp/binaryen.deb
 
       - name: checkout
         uses: actions/checkout@v2
@@ -76,14 +67,6 @@ jobs:
         with:
           ghc-version: 8.10.2
           cabal-version: 3.2.0.0
-
-      - name: setup-binaryen
-        run: |
-          curl \
-            -o /tmp/binaryen.deb \
-            http://deb.debian.org/debian/pool/main/b/binaryen/binaryen_97-1_amd64.deb
-          sudo dpkg -i /tmp/binaryen.deb
-          rm /tmp/binaryen.deb
 
       - name: checkout
         uses: actions/checkout@v2
