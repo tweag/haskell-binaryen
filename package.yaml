@@ -9,13 +9,51 @@ license: BSD3
 github: tweag/haskell-binaryen
 
 extra-source-files:
+  - binaryen/**/*
   - CHANGELOG.md
   - LICENSE
   - README.md
 
 extra-libraries:
-  - binaryen
   - stdc++
+
+include-dirs:
+  - binaryen/src
+  - binaryen/third_party/llvm-project/include
+
+cpp-options:
+  - -DBUILD_LLVM_DWARF
+  - -UNDEBUG
+
+cxx-options:
+  - -std=c++14
+  - -Wall
+  - -Wextra
+  - -Wno-unused-parameter
+  - -fno-omit-frame-pointer
+  - -Wno-implicit-int-float-conversion
+  - -Wno-unknown-warning-option
+  - -Wswitch
+  - -fPIC
+  - -O2
+
+cxx-sources:
+  - binaryen/src/*.cpp
+  - binaryen/src/asmjs/*.cpp
+  - binaryen/src/cfg/*.cpp
+  - binaryen/src/emscripten-optimizer/*.cpp
+  - binaryen/src/ir/*.cpp
+  - binaryen/src/passes/*.cpp
+  - binaryen/src/support/*.cpp
+  - binaryen/src/wasm/*.cpp
+  - binaryen/third_party/llvm-project/**/*.cpp
+
+cc-options:
+  - -std=c11
+  - -Wall
+  - -Wextra
+  - -fPIC
+  - -O2
 
 c-sources:
   - cbits/wrappers.c
