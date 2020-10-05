@@ -25,6 +25,9 @@ jobs:
 
       - name: test
         run: |
+          mkdir -p ~/.stack
+          printf "nix:\n  enable: true\n" > ~/.stack/config.yaml
+
           nix-shell --run "stack test --flag binaryen:system-binaryen && stack test"
 
   build-windows:
