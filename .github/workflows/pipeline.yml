@@ -6,7 +6,7 @@ on:
 
 jobs:
 
-  build-nix:
+  stack-nix:
     name: stack-nix-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -30,7 +30,28 @@ jobs:
 
           nix-shell --run "stack test --flag binaryen:system-binaryen && stack test"
 
-  build-windows:
+  cabal-nix:
+    name: cabal-nix-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+          - macos-10.15
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: setup-nix
+        uses: cachix/install-nix-action@v11
+
+      - name: test
+        run: |
+          nix-shell --run "cabal v2-install --lib --flags system-binaryen && cabal v2-install --lib"
+
+  stack-windows:
     name: stack-windows
     runs-on: windows-2019
     steps:
@@ -48,6 +69,24 @@ jobs:
       - name: test
         run: |
           stack test
+
+  cabal-windows:
+    name: cabal-windows
+    runs-on: windows-2019
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: setup-haskell
+        uses: actions/setup-haskell@main
+        with:
+          ghc-version: 8.10.2
+          cabal-version: 3.2.0.0
+
+      - name: test
+        run: |
+          cabal v2-install --lib
 
   sdist:
     name: sdist
