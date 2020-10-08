@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d3b6d02732970780fe3aa61d3f81c217aae469c5b6d4a0296c5688fbbcdb31ab
+-- hash: 79503cfc4f8358d830d59f12c02db742cc90ad2710fed0ecceb401fe2e7f7c78
 
 name:           binaryen
 version:        0.0.5.0
@@ -1881,7 +1881,7 @@ source-repository head
   location: https://github.com/tweag/haskell-binaryen
 
 flag system-binaryen
-  description: Link against system-wide binaryen
+  description: Link against system-wide binaryen and don't build bundled binaryen
   manual: True
   default: False
 
@@ -1908,6 +1908,17 @@ library
       Paths_binaryen
   hs-source-dirs:
       src
+  ghc-options: -Wall
+  build-depends:
+      base <5
+    , libbinaryen
+  default-language: Haskell2010
+
+library libbinaryen
+  other-modules:
+      Paths_binaryen
+  autogen-modules:
+      Paths_binaryen
   ghc-options: -Wall
   cc-options: -std=c11 -Wall -Wextra -fPIC
   c-sources:
