@@ -53,7 +53,6 @@ internal-libraries:
             - -Wno-implicit-int-float-conversion
             - -Wno-unknown-warning-option
             - -Wswitch
-            - -O2
           cxx-sources:
             - binaryen/src/*.cpp
             - binaryen/src/asmjs/*.cpp
@@ -68,7 +67,6 @@ internal-libraries:
       - -std=c11
       - -Wall
       - -Wextra
-      - -O2
     c-sources:
       - cbits/wrappers.c
     generated-other-modules:
