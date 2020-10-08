@@ -29,6 +29,7 @@ jobs:
           printf "nix:\n  enable: true\n" > ~/.stack/config.yaml
 
           nix-shell --run "stack test --flag binaryen:system-binaryen && stack test"
+          nix-shell --run "echo int32 | stack ghci binaryen:lib"
 
   cabal-nix:
     name: cabal-nix-${{ matrix.os }}
@@ -69,6 +70,7 @@ jobs:
       - name: test
         run: |
           stack test
+          echo int32 | stack ghci binaryen:lib
 
   cabal-windows:
     name: cabal-windows
