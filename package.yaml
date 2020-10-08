@@ -40,22 +40,20 @@ internal-libraries:
             - binaryen/src
             - binaryen/third_party/llvm-project/include
           cxx-options:
-            - -DBUILD_LLVM_DWARF
             - -D_GNU_SOURCE
             - -D_DEBUG
             - -D__STDC_CONSTANT_MACROS
             - -D__STDC_FORMAT_MACROS
             - -D__STDC_LIMIT_MACROS
-            - -UNDEBUG
+            - -DBUILD_LLVM_DWARF
             - -std=c++14
             - -Wall
             - -Wextra
             - -Wno-unused-parameter
-            - -fno-omit-frame-pointer
             - -Wno-implicit-int-float-conversion
             - -Wno-unknown-warning-option
             - -Wswitch
-            - -fPIC
+            - -O2
           cxx-sources:
             - binaryen/src/*.cpp
             - binaryen/src/asmjs/*.cpp
@@ -70,7 +68,7 @@ internal-libraries:
       - -std=c11
       - -Wall
       - -Wextra
-      - -fPIC
+      - -O2
     c-sources:
       - cbits/wrappers.c
     generated-other-modules:
