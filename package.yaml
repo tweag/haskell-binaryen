@@ -10,6 +10,7 @@ github: tweag/haskell-binaryen
 
 extra-source-files:
   - binaryen/**/*
+  - cbits/**/*
   - CHANGELOG.md
   - LICENSE
   - README.md

@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 79503cfc4f8358d830d59f12c02db742cc90ad2710fed0ecceb401fe2e7f7c78
+-- hash: eec687415b6d33963ed336eacd461f6142ab35439343072716950129fb327011
 
 name:           binaryen
 version:        0.0.5.0
@@ -218,6 +218,7 @@ extra-source-files:
     binaryen/src/passes/Untee.cpp
     binaryen/src/passes/Vacuum.cpp
     binaryen/src/passes/wasm-intrinsics.wat
+    binaryen/src/passes/WasmIntrinsics.cpp
     binaryen/src/pretty_printing.h
     binaryen/src/shared-constants.h
     binaryen/src/shell-interface.h
@@ -1872,6 +1873,7 @@ extra-source-files:
     binaryen/third_party/wabt/wasm2c/wasm-rt-impl.h
     binaryen/third_party/wabt/wasm2c/wasm-rt.h
     binaryen/ubsan.blacklist
+    cbits/wrappers.c
     CHANGELOG.md
     LICENSE
     README.md
@@ -2023,6 +2025,7 @@ library libbinaryen
         binaryen/src/passes/TrapMode.cpp
         binaryen/src/passes/Untee.cpp
         binaryen/src/passes/Vacuum.cpp
+        binaryen/src/passes/WasmIntrinsics.cpp
         binaryen/src/support/archive.cpp
         binaryen/src/support/bits.cpp
         binaryen/src/support/colors.cpp
