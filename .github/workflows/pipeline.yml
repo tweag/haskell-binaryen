@@ -22,6 +22,8 @@ jobs:
 
       - name: setup-nix
         uses: cachix/install-nix-action@v11
+        with:
+          nix_path: nixpkgs=./nix/nixpkgs.nix
 
       - name: test
         run: |
@@ -46,6 +48,8 @@ jobs:
 
       - name: setup-nix
         uses: cachix/install-nix-action@v11
+        with:
+          nix_path: nixpkgs=./nix/nixpkgs.nix
 
       - name: test
         run: |
@@ -98,6 +102,8 @@ jobs:
 
       - name: setup-nix
         uses: cachix/install-nix-action@v11
+        with:
+          nix_path: nixpkgs=./nix/nixpkgs.nix
 
       - name: sdist
         run: |
@@ -119,6 +125,8 @@ jobs:
 
       - name: setup-nix
         uses: cachix/install-nix-action@v11
+        with:
+          nix_path: nixpkgs=./nix/nixpkgs.nix
 
       - name: haddock
         run: |
