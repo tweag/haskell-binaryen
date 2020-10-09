@@ -65,7 +65,7 @@ jobs:
 
       - name: test
         run: |
-          nix-shell --run "cabal v2-test --test-show-details direct --flags system-binaryen && cabal v2-test --test-show-details direct"
+          nix-shell --run "cabal v2-test --test-show-details streaming --flags system-binaryen && cabal v2-test --test-show-details streaming"
 
   stack-windows:
     name: stack-windows
@@ -102,7 +102,7 @@ jobs:
 
       - name: test
         run: |
-          cabal v2-test --test-show-details direct
+          cabal v2-test --test-show-details streaming
 
   sdist:
     name: sdist
