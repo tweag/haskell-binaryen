@@ -102,7 +102,7 @@ jobs:
 
       - name: test
         run: |
-          cabal v2-test --test-show-details streaming
+          cabal v2-test --test-show-details streaming; cat D:\a\haskell-binaryen\haskell-binaryen\dist-newstyle\build\x86_64-windows\ghc-8.10.2\binaryen-0.0.5.0\t\test\test\binaryen-0.0.5.0-test.log
 
   sdist:
     name: sdist
