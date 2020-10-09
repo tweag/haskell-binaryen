@@ -78,3 +78,13 @@ library:
   source-dirs: src
   generated-other-modules:
     - Paths_binaryen
+
+tests:
+  test:
+    dependencies:
+      - binaryen
+    source-dirs: test
+    generated-other-modules:
+      - Paths_binaryen
+    main: test.hs
+    ghc-options: -threaded -rtsopts

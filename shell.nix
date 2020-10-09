@@ -7,7 +7,7 @@ mkShell {
   buildInputs = [
     binaryen
     cabal-install
-    haskell.compiler.ghc884
+    haskell.compiler.ghc8102
     nix
     stack
   ];

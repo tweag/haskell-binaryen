@@ -29,7 +29,6 @@ jobs:
           printf "nix:\n  enable: true\n" > ~/.stack/config.yaml
 
           nix-shell --run "stack test --flag binaryen:system-binaryen && stack test"
-          nix-shell --run "echo int32 | stack ghci binaryen:lib"
 
   cabal-nix:
     name: cabal-nix-${{ matrix.os }}
@@ -50,7 +49,7 @@ jobs:
 
       - name: test
         run: |
-          nix-shell --run "cabal v2-install --lib --flags system-binaryen && cabal v2-install --lib"
+          nix-shell --run "cabal v2-test --flags system-binaryen && cabal v2-test"
 
   stack-windows:
     name: stack-windows
@@ -70,7 +69,6 @@ jobs:
       - name: test
         run: |
           stack test
-          echo int32 | stack ghci binaryen:lib
 
   cabal-windows:
     name: cabal-windows
@@ -88,26 +86,22 @@ jobs:
 
       - name: test
         run: |
-          cabal v2-install --lib
+          cabal v2-test
 
   sdist:
     name: sdist
     runs-on: ubuntu-20.04
     steps:
 
-      - name: setup-haskell
-        uses: actions/setup-haskell@main
-        with:
-          ghc-version: 8.10.2
-          cabal-version: 3.2.0.0
-
       - name: checkout
         uses: actions/checkout@v2
 
+      - name: setup-nix
+        uses: cachix/install-nix-action@v11
+
       - name: sdist
         run: |
-          cabal check
-          cabal v2-sdist all
+          nix-shell --pure --run "cabal check && cabal v2-sdist all"
 
       - name: upload-artifact
         uses: actions/upload-artifact@v2
@@ -120,18 +114,15 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
 
-      - name: setup-haskell
-        uses: actions/setup-haskell@main
-        with:
-          ghc-version: 8.10.2
-          cabal-version: 3.2.0.0
-
       - name: checkout
         uses: actions/checkout@v2
 
+      - name: setup-nix
+        uses: cachix/install-nix-action@v11
+
       - name: haddock
         run: |
-          cabal v2-haddock --haddock-for-hackage --haddock-hyperlink-source --haddock-quickjump all
+          nix-shell --pure --run "cabal v2-haddock --haddock-for-hackage --haddock-hyperlink-source --haddock-quickjump all"
 
       - name: upload-artifact
         uses: actions/upload-artifact@v2

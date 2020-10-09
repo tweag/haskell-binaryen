@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1f8f290d14f208954a62a2de05d2f3e379dfb8bab7b6843c6db6b465f1d60e0b
+-- hash: e5d0c5b7b348c7f0eb189af08f960a3813a982a120c2d276b1002f07c6574298
 
 name:           binaryen
 version:        0.0.5.0
@@ -2110,4 +2110,19 @@ library libbinaryen
         binaryen/third_party/llvm-project/WithColor.cpp
         binaryen/third_party/llvm-project/YAMLParser.cpp
         binaryen/third_party/llvm-project/YAMLTraits.cpp
+  default-language: Haskell2010
+
+test-suite test
+  type: exitcode-stdio-1.0
+  main-is: test.hs
+  other-modules:
+      Paths_binaryen
+  autogen-modules:
+      Paths_binaryen
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -threaded -rtsopts
+  build-depends:
+      base <5
+    , binaryen
   default-language: Haskell2010
