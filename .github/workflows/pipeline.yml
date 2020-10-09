@@ -25,6 +25,12 @@ jobs:
         with:
           nix_path: nixpkgs=./nix/nixpkgs.nix
 
+      - name: setup-cachix
+        uses: cachix/cachix-action@v6
+        with:
+          name: haskell-binaryen
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+
       - name: test
         run: |
           mkdir -p ~/.stack
@@ -50,6 +56,12 @@ jobs:
         uses: cachix/install-nix-action@v11
         with:
           nix_path: nixpkgs=./nix/nixpkgs.nix
+
+      - name: setup-cachix
+        uses: cachix/cachix-action@v6
+        with:
+          name: haskell-binaryen
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
 
       - name: test
         run: |
@@ -105,6 +117,12 @@ jobs:
         with:
           nix_path: nixpkgs=./nix/nixpkgs.nix
 
+      - name: setup-cachix
+        uses: cachix/cachix-action@v6
+        with:
+          name: haskell-binaryen
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+
       - name: sdist
         run: |
           nix-shell --pure --run "cabal check && cabal v2-sdist all"
@@ -127,6 +145,12 @@ jobs:
         uses: cachix/install-nix-action@v11
         with:
           nix_path: nixpkgs=./nix/nixpkgs.nix
+
+      - name: setup-cachix
+        uses: cachix/cachix-action@v6
+        with:
+          name: haskell-binaryen
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
 
       - name: haddock
         run: |
