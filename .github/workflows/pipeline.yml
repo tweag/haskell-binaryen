@@ -102,7 +102,7 @@ jobs:
 
       - name: test
         run: |
-          C:\msys64\msys2_shell.cmd -mingw64 -defterm -full-path -here -no-start cabal v2-test --test-show-details streaming
+          C:\msys64\msys2_shell.cmd -mingw64 -defterm -full-path -here -no-start -c "cabal v2-test --test-show-details streaming"
 
   sdist:
     name: sdist
