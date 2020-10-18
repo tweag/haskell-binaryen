@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e5d0c5b7b348c7f0eb189af08f960a3813a982a120c2d276b1002f07c6574298
+-- hash: 433ddaa4194b08e0d29c127661b1e6930dc6a975e5f34e5e0cb53b6176ee4f0b
 
 name:           binaryen
 version:        0.0.5.0
@@ -118,6 +118,7 @@ extra-source-files:
     binaryen/src/ir/LocalGraph.cpp
     binaryen/src/ir/localize.h
     binaryen/src/ir/manipulation.h
+    binaryen/src/ir/match.h
     binaryen/src/ir/memory-utils.h
     binaryen/src/ir/module-utils.h
     binaryen/src/ir/names.h
@@ -179,8 +180,6 @@ extra-source-files:
     binaryen/src/passes/opt-utils.h
     binaryen/src/passes/OptimizeAddedConstants.cpp
     binaryen/src/passes/OptimizeInstructions.cpp
-    binaryen/src/passes/OptimizeInstructions.wat
-    binaryen/src/passes/OptimizeInstructions.wat.processed
     binaryen/src/passes/pass.cpp
     binaryen/src/passes/passes.h
     binaryen/src/passes/PickLoadSigns.cpp
@@ -192,7 +191,6 @@ extra-source-files:
     binaryen/src/passes/PrintFeatures.cpp
     binaryen/src/passes/PrintFunctionMap.cpp
     binaryen/src/passes/RedundantSetElimination.cpp
-    binaryen/src/passes/RelooperJumpThreading.cpp
     binaryen/src/passes/RemoveImports.cpp
     binaryen/src/passes/RemoveMemory.cpp
     binaryen/src/passes/RemoveNonJSOps.cpp
@@ -303,10 +301,18 @@ extra-source-files:
     binaryen/src/wasm/wasm.cpp
     binaryen/src/wasm2js.h
     binaryen/test/__init__.py
+    binaryen/test/atomics-unshared.wast
+    binaryen/test/atomics-unshared.wast.from-wast
+    binaryen/test/atomics-unshared.wast.fromBinary
+    binaryen/test/atomics-unshared.wast.fromBinary.noDebugInfo
     binaryen/test/atomics.wast
     binaryen/test/atomics.wast.from-wast
     binaryen/test/atomics.wast.fromBinary
     binaryen/test/atomics.wast.fromBinary.noDebugInfo
+    binaryen/test/atomics64.wast
+    binaryen/test/atomics64.wast.from-wast
+    binaryen/test/atomics64.wast.fromBinary
+    binaryen/test/atomics64.wast.fromBinary.noDebugInfo
     binaryen/test/bad_params.asm.js
     binaryen/test/bigswitch.cpp
     binaryen/test/bigswitch.txt
@@ -330,6 +336,8 @@ extra-source-files:
     binaryen/test/binaryen.js/expressionrunner.js.txt
     binaryen/test/binaryen.js/expressions.js
     binaryen/test/binaryen.js/expressions.js.txt
+    binaryen/test/binaryen.js/fast-math.js
+    binaryen/test/binaryen.js/fast-math.js.txt
     binaryen/test/binaryen.js/functions.js
     binaryen/test/binaryen.js/functions.js.txt
     binaryen/test/binaryen.js/global.js
@@ -481,6 +489,8 @@ extra-source-files:
     binaryen/test/example/cpp-threads.txt
     binaryen/test/example/cpp-unit.cpp
     binaryen/test/example/cpp-unit.txt
+    binaryen/test/example/match.cpp
+    binaryen/test/example/match.txt
     binaryen/test/example/relooper-fuzz.c
     binaryen/test/example/relooper-fuzz.txt
     binaryen/test/example/relooper-fuzz1.c
@@ -542,6 +552,10 @@ extra-source-files:
     binaryen/test/fn_prolog_epilog.debugInfo.wast.from-wast
     binaryen/test/fn_prolog_epilog.debugInfo.wast.fromBinary
     binaryen/test/fn_prolog_epilog.debugInfo.wast.fromBinary.noDebugInfo
+    binaryen/test/gc.wast
+    binaryen/test/gc.wast.from-wast
+    binaryen/test/gc.wast.fromBinary
+    binaryen/test/gc.wast.fromBinary.noDebugInfo
     binaryen/test/grow_memory.cpp
     binaryen/test/grow_memory.emcc
     binaryen/test/grow_memory.txt
@@ -668,6 +682,11 @@ extra-source-files:
     binaryen/test/memory-import.wast.from-wast
     binaryen/test/memory-import.wast.fromBinary
     binaryen/test/memory-import.wast.fromBinary.noDebugInfo
+    binaryen/test/memory-import64.wast
+    binaryen/test/memory-import64.wast.from-wast
+    binaryen/test/memory-import64.wast.fromBinary
+    binaryen/test/memory-import64.wast.fromBinary.noDebugInfo
+    binaryen/test/memory-import64.wast.wasm.fromBinary
     binaryen/test/memory-shared.wast
     binaryen/test/memory-shared.wast.from-wast
     binaryen/test/memory-shared.wast.fromBinary
@@ -747,6 +766,9 @@ extra-source-files:
     binaryen/test/nonspec-bulk-memory.wast.fromBinary.noDebugInfo
     binaryen/test/passes/alignment-lowering.txt
     binaryen/test/passes/alignment-lowering.wast
+    binaryen/test/passes/alignment-lowering64.passes
+    binaryen/test/passes/alignment-lowering64.txt
+    binaryen/test/passes/alignment-lowering64.wast
     binaryen/test/passes/asyncify.txt
     binaryen/test/passes/asyncify.wast
     binaryen/test/passes/asyncify_enable-multivalue.txt
@@ -781,6 +803,9 @@ extra-source-files:
     binaryen/test/passes/asyncify_pass-arg=asyncify-verbose.wast
     binaryen/test/passes/avoid-reinterprets.txt
     binaryen/test/passes/avoid-reinterprets.wast
+    binaryen/test/passes/avoid-reinterprets64.passes
+    binaryen/test/passes/avoid-reinterprets64.txt
+    binaryen/test/passes/avoid-reinterprets64.wast
     binaryen/test/passes/class_with_dwarf_noprint.bin.txt
     binaryen/test/passes/class_with_dwarf_noprint.passes
     binaryen/test/passes/class_with_dwarf_noprint.wasm
@@ -810,6 +835,9 @@ extra-source-files:
     binaryen/test/passes/dce_vacuum.wast
     binaryen/test/passes/dealign.txt
     binaryen/test/passes/dealign.wast
+    binaryen/test/passes/dealign64.passes
+    binaryen/test/passes/dealign64.txt
+    binaryen/test/passes/dealign64.wast
     binaryen/test/passes/denan.txt
     binaryen/test/passes/denan.wast
     binaryen/test/passes/directize_enable-tail-call.txt
@@ -902,6 +930,9 @@ extra-source-files:
     binaryen/test/passes/ignore_missing_func_dwarf.wasm
     binaryen/test/passes/inline-main.txt
     binaryen/test/passes/inline-main.wast
+    binaryen/test/passes/inlined_to_start_dwarf.bin.txt
+    binaryen/test/passes/inlined_to_start_dwarf.passes
+    binaryen/test/passes/inlined_to_start_dwarf.wasm
     binaryen/test/passes/inlining-optimizing_enable-threads.txt
     binaryen/test/passes/inlining-optimizing_enable-threads.wast
     binaryen/test/passes/inlining-optimizing_optimize-level=3.txt
@@ -916,6 +947,9 @@ extra-source-files:
     binaryen/test/passes/instrument-locals_all-features.wast
     binaryen/test/passes/instrument-memory.txt
     binaryen/test/passes/instrument-memory.wast
+    binaryen/test/passes/instrument-memory64.passes
+    binaryen/test/passes/instrument-memory64.txt
+    binaryen/test/passes/instrument-memory64.wast
     binaryen/test/passes/interesting-pass-mix.passes
     binaryen/test/passes/interesting-pass-mix.txt
     binaryen/test/passes/interesting-pass-mix.wast
@@ -983,6 +1017,8 @@ extra-source-files:
     binaryen/test/passes/O3_print-stack-ir.wast
     binaryen/test/passes/O4_disable-bulk-memory.txt
     binaryen/test/passes/O4_disable-bulk-memory.wast
+    binaryen/test/passes/O_fast-math.txt
+    binaryen/test/passes/O_fast-math.wast
     binaryen/test/passes/optimize-added-constants-propagate_low-memory-unused.txt
     binaryen/test/passes/optimize-added-constants-propagate_low-memory-unused.wast
     binaryen/test/passes/optimize-added-constants_low-memory-unused.txt
@@ -1003,12 +1039,6 @@ extra-source-files:
     binaryen/test/passes/post-assemblyscript.wast
     binaryen/test/passes/post-emscripten.txt
     binaryen/test/passes/post-emscripten.wast
-    binaryen/test/passes/post-emscripten_pass-arg=emscripten-sbrk-ptr@16_pass-arg=emscripten-sbrk-val@42.txt
-    binaryen/test/passes/post-emscripten_pass-arg=emscripten-sbrk-ptr@16_pass-arg=emscripten-sbrk-val@42.wast
-    binaryen/test/passes/post-emscripten_pass-arg=emscripten-sbrk-ptr@4008.txt
-    binaryen/test/passes/post-emscripten_pass-arg=emscripten-sbrk-ptr@4008.wast
-    binaryen/test/passes/post-emscripten_pass-arg=stack-pointer@1234.txt
-    binaryen/test/passes/post-emscripten_pass-arg=stack-pointer@1234.wast
     binaryen/test/passes/precompute-propagate_all-features.txt
     binaryen/test/passes/precompute-propagate_all-features.wast
     binaryen/test/passes/precompute_all-features.txt
@@ -1067,6 +1097,9 @@ extra-source-files:
     binaryen/test/passes/reorder-functions.wast
     binaryen/test/passes/reorder-locals.txt
     binaryen/test/passes/reorder-locals.wast
+    binaryen/test/passes/reverse_dwarf_abbrevs.bin.txt
+    binaryen/test/passes/reverse_dwarf_abbrevs.passes
+    binaryen/test/passes/reverse_dwarf_abbrevs.wasm
     binaryen/test/passes/roundtrip.txt
     binaryen/test/passes/roundtrip.wast
     binaryen/test/passes/rse_all-features.txt
@@ -1075,6 +1108,9 @@ extra-source-files:
     binaryen/test/passes/safe-heap_disable-simd.wast
     binaryen/test/passes/safe-heap_enable-threads_enable-simd.txt
     binaryen/test/passes/safe-heap_enable-threads_enable-simd.wast
+    binaryen/test/passes/safe-heap_enable-threads_enable-simd64.passes
+    binaryen/test/passes/safe-heap_enable-threads_enable-simd64.txt
+    binaryen/test/passes/safe-heap_enable-threads_enable-simd64.wast
     binaryen/test/passes/safe-heap_low-memory-unused_enable-threads_enable-simd.txt
     binaryen/test/passes/safe-heap_low-memory-unused_enable-threads_enable-simd.wast
     binaryen/test/passes/simplify-globals-optimizing_enable-mutable-globals.txt
@@ -1180,9 +1216,15 @@ extra-source-files:
     binaryen/test/simd.wast.from-wast
     binaryen/test/simd.wast.fromBinary
     binaryen/test/simd.wast.fromBinary.noDebugInfo
+    binaryen/test/simd64.wast
+    binaryen/test/simd64.wast.from-wast
+    binaryen/test/simd64.wast.fromBinary
+    binaryen/test/simd64.wast.fromBinary.noDebugInfo
     binaryen/test/spec/address-offset-range.fail.wast
     binaryen/test/spec/address.wast
+    binaryen/test/spec/address64.wast
     binaryen/test/spec/align.wast
+    binaryen/test/spec/align64.wast
     binaryen/test/spec/atomics.wast
     binaryen/test/spec/binary-leb128.wast
     binaryen/test/spec/binary.wast
@@ -1192,6 +1234,7 @@ extra-source-files:
     binaryen/test/spec/br_table.wast
     binaryen/test/spec/break-drop.wast
     binaryen/test/spec/bulk-memory.wast
+    binaryen/test/spec/bulk-memory64.wast
     binaryen/test/spec/call.wast
     binaryen/test/spec/call_indirect.wast
     binaryen/test/spec/call_indirect_sig_mismatch.wast
@@ -1203,6 +1246,7 @@ extra-source-files:
     binaryen/test/spec/data.wast
     binaryen/test/spec/elem.wast
     binaryen/test/spec/endianness.wast
+    binaryen/test/spec/endianness64.wast
     binaryen/test/spec/events.wast
     binaryen/test/spec/exception-handling.wast
     binaryen/test/spec/expected-output/func_ptrs.wast.log
@@ -1228,6 +1272,7 @@ extra-source-files:
     binaryen/test/spec/float_exprs.wast
     binaryen/test/spec/float_literals.wast
     binaryen/test/spec/float_memory.wast
+    binaryen/test/spec/float_memory64.wast
     binaryen/test/spec/float_misc.wast
     binaryen/test/spec/forward.wast
     binaryen/test/spec/func-local-after-body.fail.wast
@@ -1265,15 +1310,20 @@ extra-source-files:
     binaryen/test/spec/LICENSE
     binaryen/test/spec/linking.wast
     binaryen/test/spec/load.wast
+    binaryen/test/spec/load64.wast
     binaryen/test/spec/local_get.wast
     binaryen/test/spec/local_set.wast
     binaryen/test/spec/local_tee.wast
     binaryen/test/spec/loop.wast
     binaryen/test/spec/memory.wast
+    binaryen/test/spec/memory64.wast
     binaryen/test/spec/memory_grow.wast
+    binaryen/test/spec/memory_grow64.wast
     binaryen/test/spec/memory_redundancy.wast
+    binaryen/test/spec/memory_redundancy64.wast
     binaryen/test/spec/memory_size.wast
     binaryen/test/spec/memory_trap.wast
+    binaryen/test/spec/memory_trap64.wast
     binaryen/test/spec/multivalue.wast
     binaryen/test/spec/names.wast
     binaryen/test/spec/nop.wast
@@ -1284,6 +1334,7 @@ extra-source-files:
     binaryen/test/spec/of_string-overflow-u32.fail.wast
     binaryen/test/spec/of_string-overflow-u64.fail.wast
     binaryen/test/spec/old_address.wast
+    binaryen/test/spec/old_address64.wast
     binaryen/test/spec/old_block.wast
     binaryen/test/spec/old_br_if.wast
     binaryen/test/spec/old_call.wast
@@ -1304,6 +1355,7 @@ extra-source-files:
     binaryen/test/spec/ref_is_null.wast
     binaryen/test/spec/ref_null.wast
     binaryen/test/spec/resizing.wast
+    binaryen/test/spec/resizing64.wast
     binaryen/test/spec/return.wast
     binaryen/test/spec/run.py
     binaryen/test/spec/select.wast
@@ -1372,6 +1424,7 @@ extra-source-files:
     binaryen/test/unit/input/stack_ir.wat
     binaryen/test/unit/input/tail_call_target_feature.wasm
     binaryen/test/unit/input/truncsat_target_feature.wasm
+    binaryen/test/unit/input/update.sh
     binaryen/test/unit/test_asyncify.py
     binaryen/test/unit/test_datacount.py
     binaryen/test/unit/test_dwarf.py
@@ -1413,7 +1466,6 @@ extra-source-files:
     binaryen/test/wasm2js/add_div.2asm.js
     binaryen/test/wasm2js/add_div.2asm.js.opt
     binaryen/test/wasm2js/add_div.wast
-    binaryen/test/wasm2js/address.2asm.js
     binaryen/test/wasm2js/atomic_fence.2asm.js
     binaryen/test/wasm2js/atomic_fence.2asm.js.opt
     binaryen/test/wasm2js/atomic_fence.wast
@@ -1423,9 +1475,7 @@ extra-source-files:
     binaryen/test/wasm2js/base64.2asm.js
     binaryen/test/wasm2js/base64.2asm.js.opt
     binaryen/test/wasm2js/base64.wast
-    binaryen/test/wasm2js/block.2asm.js
     binaryen/test/wasm2js/br.2asm.js
-    binaryen/test/wasm2js/br_if.2asm.js
     binaryen/test/wasm2js/br_table.2asm.js
     binaryen/test/wasm2js/br_table_hoisting.2asm.js
     binaryen/test/wasm2js/br_table_hoisting.2asm.js.opt
@@ -1439,8 +1489,6 @@ extra-source-files:
     binaryen/test/wasm2js/break-drop.2asm.js
     binaryen/test/wasm2js/bulk-memory.2asm.js
     binaryen/test/wasm2js/bulk-memory.2asm.js.opt
-    binaryen/test/wasm2js/call.2asm.js
-    binaryen/test/wasm2js/call_indirect.2asm.js
     binaryen/test/wasm2js/comments.2asm.js
     binaryen/test/wasm2js/conversions-modified.2asm.js
     binaryen/test/wasm2js/conversions-modified.2asm.js.opt
@@ -1474,7 +1522,6 @@ extra-source-files:
     binaryen/test/wasm2js/excess_fallthrough.wast
     binaryen/test/wasm2js/f32.2asm.js
     binaryen/test/wasm2js/f32_cmp.2asm.js
-    binaryen/test/wasm2js/f64.2asm.js
     binaryen/test/wasm2js/f64_cmp.2asm.js
     binaryen/test/wasm2js/fac.2asm.js
     binaryen/test/wasm2js/float-ops.2asm.js
@@ -1488,7 +1535,6 @@ extra-source-files:
     binaryen/test/wasm2js/func-ptr-offset.2asm.js
     binaryen/test/wasm2js/func-ptr-offset.2asm.js.opt
     binaryen/test/wasm2js/func-ptr-offset.wast
-    binaryen/test/wasm2js/func.2asm.js
     binaryen/test/wasm2js/func_ptrs.2asm.js
     binaryen/test/wasm2js/get-set-local.2asm.js
     binaryen/test/wasm2js/get-set-local.2asm.js.opt
@@ -1501,7 +1547,6 @@ extra-source-files:
     binaryen/test/wasm2js/grow-memory-tricky.2asm.js.opt
     binaryen/test/wasm2js/grow-memory-tricky.wast
     binaryen/test/wasm2js/grow_memory.2asm.js
-    binaryen/test/wasm2js/hello_world.2asm.js
     binaryen/test/wasm2js/i32.2asm.js
     binaryen/test/wasm2js/i64-add-sub.2asm.js
     binaryen/test/wasm2js/i64-add-sub.2asm.js.opt
@@ -1521,7 +1566,6 @@ extra-source-files:
     binaryen/test/wasm2js/i64-shifts.2asm.js
     binaryen/test/wasm2js/i64-shifts.2asm.js.opt
     binaryen/test/wasm2js/i64-shifts.wast
-    binaryen/test/wasm2js/i64.2asm.js
     binaryen/test/wasm2js/if_unreachable.2asm.js
     binaryen/test/wasm2js/if_unreachable.2asm.js.opt
     binaryen/test/wasm2js/if_unreachable.wast
@@ -1529,10 +1573,8 @@ extra-source-files:
     binaryen/test/wasm2js/indirect-select.2asm.js.opt
     binaryen/test/wasm2js/indirect-select.wast
     binaryen/test/wasm2js/int_exprs.2asm.js
-    binaryen/test/wasm2js/int_literals.2asm.js
     binaryen/test/wasm2js/labels.2asm.js
     binaryen/test/wasm2js/left-to-right.2asm.js
-    binaryen/test/wasm2js/loop.2asm.js
     binaryen/test/wasm2js/minified-memory.2asm.js
     binaryen/test/wasm2js/minified-memory.2asm.js.opt
     binaryen/test/wasm2js/minified-memory.wast
@@ -1551,7 +1593,6 @@ extra-source-files:
     binaryen/test/wasm2js/reinterpret_scratch.2asm.js
     binaryen/test/wasm2js/reinterpret_scratch.2asm.js.opt
     binaryen/test/wasm2js/reinterpret_scratch.wast
-    binaryen/test/wasm2js/select.2asm.js
     binaryen/test/wasm2js/set_local.2asm.js
     binaryen/test/wasm2js/sign_ext.2asm.js
     binaryen/test/wasm2js/sign_ext.2asm.js.opt
@@ -1580,7 +1621,6 @@ extra-source-files:
     binaryen/test/wasm2js/unreachable-later.2asm.js
     binaryen/test/wasm2js/unreachable-later.2asm.js.opt
     binaryen/test/wasm2js/unreachable-later.wast
-    binaryen/test/wasm2js/unreachable.2asm.js
     binaryen/test/wasm2js/wasm2js.wast.asserts
     binaryen/third_party/CMakeLists.txt
     binaryen/third_party/llvm-project/Binary.cpp
@@ -2000,7 +2040,6 @@ library libbinaryen
         binaryen/src/passes/PrintFeatures.cpp
         binaryen/src/passes/PrintFunctionMap.cpp
         binaryen/src/passes/RedundantSetElimination.cpp
-        binaryen/src/passes/RelooperJumpThreading.cpp
         binaryen/src/passes/RemoveImports.cpp
         binaryen/src/passes/RemoveMemory.cpp
         binaryen/src/passes/RemoveNonJSOps.cpp
