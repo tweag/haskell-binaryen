@@ -5,21 +5,10 @@
 , nixpkgsArgs ? haskellNix.nixpkgsArgs // { overlays = haskellNix.nixpkgsArgs.overlays ++ [ binaryenOverlay ]; }
 , pkgs ? import nixpkgsSrc nixpkgsArgs
 , ghc ? "ghc8102"
-, hsPkgs ? import ./default.nix { inherit pkgs ghc; }
-}: hsPkgs.shellFor {
-  packages = ps: with ps; [
-    binaryen
-  ];
-
-  withHoogle = true;
-
-  buildInputs = with pkgs.haskellPackages; [
-    brittany
-    cabal-install
-    ghcid
-    hlint
-    (import sources.ormolu {}).ormolu
-  ];
-
-  exactDeps = true;
+}: pkgs.haskell-nix.cabalProject {
+  src = pkgs.haskell-nix.haskellLib.cleanGit {
+    name = "haskell-binaryen";
+    src = ./.;
+  };
+  compiler-nix-name = ghc;
 }
