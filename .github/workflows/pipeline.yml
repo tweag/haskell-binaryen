@@ -104,7 +104,7 @@ jobs:
 
       - name: haddock
         run: |
-          nix-shell --pure --run "cabal v2-haddock --haddock-for-hackage --haddock-hyperlink-source --haddock-quickjump all"
+          nix-shell --pure --run "cabal v2-haddock --flags=system-binaryen --extra-include-dirs=\$binaryenIncludeDir --extra-lib-dirs=\$binaryenLibDir --haddock-for-hackage --haddock-hyperlink-source --haddock-quickjump all"
 
       - name: upload-artifact
         uses: actions/upload-artifact@v2
