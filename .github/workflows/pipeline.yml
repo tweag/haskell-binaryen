@@ -6,8 +6,8 @@ on:
 
 jobs:
 
-  stack-nix:
-    name: stack-nix-${{ matrix.os }}
+  nix:
+    name: nix-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -33,39 +33,7 @@ jobs:
 
       - name: test
         run: |
-          mkdir -p ~/.stack
-          printf "nix:\n  enable: true\n" > ~/.stack/config.yaml
-
-          nix-shell --run "stack test --flag binaryen:system-binaryen && stack test"
-
-  cabal-nix:
-    name: cabal-nix-${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-20.04
-          - macos-10.15
-    steps:
-
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: setup-nix
-        uses: cachix/install-nix-action@v11
-        with:
-          nix_path: nixpkgs=./nix/nixpkgs.nix
-
-      - name: setup-cachix
-        uses: cachix/cachix-action@master
-        with:
-          name: asterius
-          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
-
-      - name: test
-        run: |
-          nix-shell --run "cabal v2-test --test-show-details streaming --flags system-binaryen && cabal v2-test --test-show-details streaming"
+          nix run -f . -i binaryen.components.tests.test -c test
 
   stack-windows:
     name: stack-windows

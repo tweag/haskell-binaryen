@@ -11,4 +11,7 @@
     src = ./.;
   };
   compiler-nix-name = ghc;
+  modules = [{
+    packages.binaryen.configureFlags = [ "--flags=-system-binaryen" ];
+  }];
 }
