@@ -28,7 +28,7 @@ jobs:
       - name: setup-cachix
         uses: cachix/cachix-action@master
         with:
-          name: haskell-binaryen
+          name: asterius
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
 
       - name: test
@@ -60,7 +60,7 @@ jobs:
       - name: setup-cachix
         uses: cachix/cachix-action@master
         with:
-          name: haskell-binaryen
+          name: asterius
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
 
       - name: test
@@ -120,7 +120,7 @@ jobs:
       - name: setup-cachix
         uses: cachix/cachix-action@master
         with:
-          name: haskell-binaryen
+          name: asterius
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
 
       - name: sdist
@@ -149,7 +149,7 @@ jobs:
       - name: setup-cachix
         uses: cachix/cachix-action@master
         with:
-          name: haskell-binaryen
+          name: asterius
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
 
       - name: haddock
