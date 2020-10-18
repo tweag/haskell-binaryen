@@ -33,14 +33,15 @@ it's no less than the minimum version listed below.
 
 A simple `stack build` or `cabal build` command should work.
 
-`Nix`-based build is also supported. Install [Stack][stack] and [Nix][nix].
-Then,
+For Windows `cabal` users: run the build in a msys2 mingw64 shell.
+
+[`nix`][nix]-based build is also supported:
 
 ```shell
-$ stack --nix build
+$ nix-shell --pure --run "cabal v2-run binaryen:test"
+$ nix-shell --pure --run "cabal v2-run binaryen:test --flags=system-binaryen --extra-include-dirs=\$binaryenIncludeDir --extra-lib-dirs=\$binaryenLibDir"
 ```
 
 [binaryen]: https://github.com/WebAssembly/binaryen
 [binaryen-api]: https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h
 [nix]: https://nixos.org/nix
-[stack]: https://docs.haskellstack.org/en/stable/README
