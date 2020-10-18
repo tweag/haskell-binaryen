@@ -40,6 +40,8 @@ enum Op {
   Shl,
   ShrU,
   ShrS,
+  RotL,
+  RotR,
   And,
   Or,
   Xor,
@@ -56,6 +58,13 @@ enum Op {
   GeS,
   GeU
 };
+
+inline bool hasAnyShift(BinaryOp op) {
+  return op == ShlInt32 || op == ShrSInt32 || op == ShrUInt32 ||
+         op == RotLInt32 || op == RotRInt32 || op == ShlInt64 ||
+         op == ShrSInt64 || op == ShrUInt64 || op == RotLInt64 ||
+         op == RotRInt64;
+}
 
 // Provide a wasm type and an abstract op and get the concrete one. For example,
 // you can provide i32 and Add and receive the specific opcode for a 32-bit
@@ -98,13 +107,13 @@ inline UnaryOp getUnary(Type type, Op op) {
       }
       break;
     }
-    case Type::v128: {
-      WASM_UNREACHABLE("v128 not implemented yet");
-    }
+    case Type::v128:
     case Type::funcref:
     case Type::externref:
     case Type::exnref:
     case Type::anyref:
+    case Type::eqref:
+    case Type::i31ref:
     case Type::none:
     case Type::unreachable: {
       return InvalidUnary;
@@ -137,6 +146,10 @@ inline BinaryOp getBinary(Type type, Op op) {
           return ShrUInt32;
         case ShrS:
           return ShrSInt32;
+        case RotL:
+          return RotLInt32;
+        case RotR:
+          return RotRInt32;
         case And:
           return AndInt32;
         case Or:
@@ -190,6 +203,10 @@ inline BinaryOp getBinary(Type type, Op op) {
           return ShrUInt64;
         case ShrS:
           return ShrSInt64;
+        case RotL:
+          return RotLInt64;
+        case RotR:
+          return RotRInt64;
         case And:
           return AndInt64;
         case Or:
@@ -263,13 +280,13 @@ inline BinaryOp getBinary(Type type, Op op) {
       }
       break;
     }
-    case Type::v128: {
-      WASM_UNREACHABLE("v128 not implemented yet");
-    }
+    case Type::v128:
     case Type::funcref:
     case Type::externref:
     case Type::exnref:
     case Type::anyref:
+    case Type::eqref:
+    case Type::i31ref:
     case Type::none:
     case Type::unreachable: {
       return InvalidBinary;
