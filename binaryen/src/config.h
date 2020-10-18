@@ -1,0 +1,1 @@
+#define PROJECT_VERSION "98"

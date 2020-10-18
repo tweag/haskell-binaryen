@@ -6,37 +6,43 @@ on:
 
 jobs:
 
-  build:
-    name: build
-    runs-on: ubuntu-20.04
+  nix:
+    name: nix-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+          - macos-10.15
     steps:
-
-      - name: setup-haskell
-        uses: actions/setup-haskell@main
-        with:
-          stack-version: 2.3.3
-          enable-stack: true
-          stack-no-global: true
-
-      - name: setup-binaryen
-        run: |
-          curl \
-            -o /tmp/binaryen.deb \
-            http://deb.debian.org/debian/pool/main/b/binaryen/binaryen_97-1_amd64.deb
-          sudo dpkg -i /tmp/binaryen.deb
-          rm /tmp/binaryen.deb
 
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: build
-        run: |
-          stack test
+      - name: setup-nix
+        uses: cachix/install-nix-action@v11
+        with:
+          nix_path: nixpkgs=./nix/nixpkgs.nix
 
-  sdist:
-    name: sdist
-    runs-on: ubuntu-20.04
+      - name: setup-cachix
+        uses: cachix/cachix-action@master
+        with:
+          name: asterius
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+
+      - name: test
+        run: |
+          nix run -f . --arg systemBinaryen true -i binaryen.components.tests.test -c test
+          nix run -f . --arg systemBinaryen false -i binaryen.components.tests.test -c test
+
+  cabal-windows:
+    name: cabal-windows
+    runs-on: windows-2019
     steps:
+
+      - name: checkout
+        uses: actions/checkout@v2
 
       - name: setup-haskell
         uses: actions/setup-haskell@main
@@ -44,21 +50,32 @@ jobs:
           ghc-version: 8.10.2
           cabal-version: 3.2.0.0
 
-      - name: setup-binaryen
+      - name: test
         run: |
-          curl \
-            -o /tmp/binaryen.deb \
-            http://deb.debian.org/debian/pool/main/b/binaryen/binaryen_97-1_amd64.deb
-          sudo dpkg -i /tmp/binaryen.deb
-          rm /tmp/binaryen.deb
+          C:\msys64\msys2_shell.cmd -mingw64 -defterm -full-path -here -no-start -c "cabal v2-run binaryen:test"
+
+  sdist:
+    name: sdist
+    runs-on: ubuntu-20.04
+    steps:
 
       - name: checkout
         uses: actions/checkout@v2
 
+      - name: setup-nix
+        uses: cachix/install-nix-action@v11
+        with:
+          nix_path: nixpkgs=./nix/nixpkgs.nix
+
+      - name: setup-cachix
+        uses: cachix/cachix-action@master
+        with:
+          name: asterius
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+
       - name: sdist
         run: |
-          cabal check
-          cabal v2-sdist all
+          nix-shell --pure --run "cabal check && cabal v2-sdist all"
 
       - name: upload-artifact
         uses: actions/upload-artifact@v2
@@ -71,26 +88,23 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
 
-      - name: setup-haskell
-        uses: actions/setup-haskell@main
-        with:
-          ghc-version: 8.10.2
-          cabal-version: 3.2.0.0
-
-      - name: setup-binaryen
-        run: |
-          curl \
-            -o /tmp/binaryen.deb \
-            http://deb.debian.org/debian/pool/main/b/binaryen/binaryen_97-1_amd64.deb
-          sudo dpkg -i /tmp/binaryen.deb
-          rm /tmp/binaryen.deb
-
       - name: checkout
         uses: actions/checkout@v2
 
+      - name: setup-nix
+        uses: cachix/install-nix-action@v11
+        with:
+          nix_path: nixpkgs=./nix/nixpkgs.nix
+
+      - name: setup-cachix
+        uses: cachix/cachix-action@master
+        with:
+          name: asterius
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+
       - name: haddock
         run: |
-          cabal v2-haddock --haddock-for-hackage --haddock-hyperlink-source --haddock-quickjump all
+          nix-shell --pure --run "cabal v2-haddock --flags=system-binaryen --extra-include-dirs=\$binaryenIncludeDir --extra-lib-dirs=\$binaryenLibDir --haddock-for-hackage --haddock-hyperlink-source --haddock-quickjump all"
 
       - name: upload-artifact
         uses: actions/upload-artifact@v2

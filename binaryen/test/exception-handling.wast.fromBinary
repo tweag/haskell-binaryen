@@ -1,0 +1,78 @@
+(module
+ (type $none_=>_none (func))
+ (type $i32_=>_none (func (param i32)))
+ (type $externref_=>_none (func (param externref)))
+ (type $exnref_=>_exnref (func (param exnref) (result exnref)))
+ (event $event$0 (attr 0) (param i32))
+ (event $event$1 (attr 0) (param externref))
+ (func $exnref_test (param $0 exnref) (result exnref)
+  (local.get $0)
+ )
+ (func $foo
+  (nop)
+ )
+ (func $bar
+  (nop)
+ )
+ (func $eh_test
+  (local $exn exnref)
+  (try
+   (do
+    (throw $event$0
+     (i32.const 0)
+    )
+   )
+   (catch
+    (local.set $exn
+     (pop exnref)
+    )
+    (drop
+     (block $label$3 (result i32)
+      (rethrow
+       (br_on_exn $label$3 $event$0
+        (local.get $exn)
+       )
+      )
+     )
+    )
+   )
+  )
+  (block $label$4
+   (try
+    (do
+     (br $label$4)
+    )
+    (catch
+     (drop
+      (pop exnref)
+     )
+     (br $label$4)
+    )
+   )
+  )
+  (try
+   (do
+    (nop)
+   )
+   (catch
+    (drop
+     (pop exnref)
+    )
+   )
+  )
+  (try
+   (do
+    (call $foo)
+    (call $bar)
+   )
+   (catch
+    (drop
+     (pop exnref)
+    )
+    (call $foo)
+    (call $bar)
+   )
+  )
+ )
+)
+
