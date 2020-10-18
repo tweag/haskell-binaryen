@@ -42,6 +42,10 @@ $ nix-shell --pure --run "cabal v2-run binaryen:test"
 $ nix-shell --pure --run "cabal v2-run binaryen:test --flags=system-binaryen --extra-include-dirs=\$binaryenIncludeDir --extra-lib-dirs=\$binaryenLibDir"
 ```
 
+Use the [`asterius`][cachix-asterius] Cachix bucket for reusing binary cache
+built on CI.
+
 [binaryen]: https://github.com/WebAssembly/binaryen
 [binaryen-api]: https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h
+[cachix-asterius]: https://app.cachix.org/cache/asterius
 [nix]: https://nixos.org/nix
