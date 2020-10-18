@@ -14,6 +14,7 @@
   withHoogle = true;
 
   buildInputs = with pkgs.haskellPackages; [
+    pkgs.binaryen
     brittany
     cabal-install
     ghcid
@@ -22,4 +23,8 @@
   ];
 
   exactDeps = true;
+
+  binaryenIncludeDir = "${pkgs.binaryen}/include";
+
+  binaryenLibDir = "${pkgs.binaryen}/lib";
 }

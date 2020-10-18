@@ -33,26 +33,8 @@ jobs:
 
       - name: test
         run: |
-          nix run -f . -i binaryen.components.tests.test -c test
-
-  stack-windows:
-    name: stack-windows
-    runs-on: windows-2019
-    steps:
-
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: setup-haskell
-        uses: actions/setup-haskell@main
-        with:
-          stack-version: 2.5.1
-          enable-stack: true
-          stack-no-global: true
-
-      - name: test
-        run: |
-          stack test
+          nix run -f . --arg systemBinaryen true -i binaryen.components.tests.test -c test
+          nix run -f . --arg systemBinaryen false -i binaryen.components.tests.test -c test
 
   cabal-windows:
     name: cabal-windows
@@ -70,7 +52,7 @@ jobs:
 
       - name: test
         run: |
-          C:\msys64\msys2_shell.cmd -mingw64 -defterm -full-path -here -no-start -c "cabal v2-test --test-show-details streaming"
+          C:\msys64\msys2_shell.cmd -mingw64 -defterm -full-path -here -no-start -c "cabal v2-run binaryen:test"
 
   sdist:
     name: sdist

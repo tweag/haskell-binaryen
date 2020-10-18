@@ -5,6 +5,7 @@
 , nixpkgsArgs ? haskellNix.nixpkgsArgs // { overlays = haskellNix.nixpkgsArgs.overlays ++ [ binaryenOverlay ]; }
 , pkgs ? import nixpkgsSrc nixpkgsArgs
 , ghc ? "ghc8102"
+, systemBinaryen ? true
 }: pkgs.haskell-nix.cabalProject {
   src = pkgs.haskell-nix.haskellLib.cleanGit {
     name = "haskell-binaryen";
@@ -12,6 +13,14 @@
   };
   compiler-nix-name = ghc;
   modules = [{
-    packages.binaryen.configureFlags = [ "--flags=-system-binaryen" ];
+    packages.binaryen.configureFlags = (
+      if systemBinaryen
+      then [
+        "--flags=system-binaryen"
+        "--extra-include-dirs=${pkgs.binaryen}/include"
+        "--extra-lib-dirs=${pkgs.binaryen}/lib"
+      ]
+      else [ "--flags=-system-binaryen" ]
+    );
   }];
 }

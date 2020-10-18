@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 433ddaa4194b08e0d29c127661b1e6930dc6a975e5f34e5e0cb53b6176ee4f0b
+-- hash: dd229f4cad11bdebeaef89df68685de75858bc5d1ec3d969f606f0519e5e34b8
 
 name:           binaryen
 version:        0.0.5.0
@@ -1966,6 +1966,7 @@ library libbinaryen
   c-sources:
       cbits/wrappers.c
   extra-libraries:
+      pthread
       stdc++
   build-depends:
       base <5

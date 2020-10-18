@@ -29,6 +29,7 @@ flags:
 internal-libraries:
   libbinaryen:
     extra-libraries:
+      - pthread
       - stdc++
     when:
       - condition: flag(system-binaryen)
