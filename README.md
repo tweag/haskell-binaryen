@@ -16,7 +16,7 @@ present in the build environment. The `system-binaryen` Cabal flag defaults to
 
 | Haskell bindings version | Bundled Binaryen version |
 | ------------------------ | ------------------------ |
-| 0.0.5.\*                 | version_98               |
+| 0.0.6.\*                 | version_99               |
 
 Older versions of this package links against the system-wide `binaryen` library,
 so before building the package, please check the Binaryen version and make sure
@@ -28,6 +28,7 @@ it's no less than the minimum version listed below.
 | 0.0.2.\*                 | version_94               |
 | 0.0.3.\*                 | version_96               |
 | 0.0.4.\*                 | version_97               |
+| 0.0.5.\*                 | version_98               |
 
 ## How to build
 

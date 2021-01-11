@@ -1,5 +1,5 @@
 name: binaryen
-version: 0.0.5.0
+version: 0.0.6.0
 synopsis: Haskell bindings to binaryen
 description: Haskell bindings to [binaryen](https://github.com/WebAssembly/binaryen). Provides complete bindings to the C API, which can be useful for building WebAssembly toolchains in Haskell.
 category: Compiler
