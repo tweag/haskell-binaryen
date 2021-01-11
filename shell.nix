@@ -13,13 +13,16 @@
 
   withHoogle = true;
 
+  tools = {
+    brittany = "latest";
+    cabal-install = "latest";
+    ghcid = "latest";
+    hlint = "latest";
+    ormolu = "latest";
+  };
+
   buildInputs = with pkgs.haskellPackages; [
     pkgs.binaryen
-    brittany
-    cabal-install
-    ghcid
-    hlint
-    (import sources.ormolu {}).ormolu
   ];
 
   exactDeps = true;

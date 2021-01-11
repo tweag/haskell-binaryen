@@ -4,7 +4,7 @@ in
 self: super:
 {
   binaryen = super.binaryen.overrideAttrs (oldAttrs: {
-    version = "98";
+    version = "99";
     src = sources.binaryen;
     patches = [ ];
   });
