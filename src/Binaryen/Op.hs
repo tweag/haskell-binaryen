@@ -536,10 +536,6 @@ foreign import ccall unsafe "BinaryenDotSVecI16x8ToVecI32x4" dotSVecI16x8ToVecI3
 
 foreign import ccall unsafe "BinaryenNegVecI64x2" negVecI64x2 :: Op
 
-foreign import ccall unsafe "BinaryenAnyTrueVecI64x2" anyTrueVecI64x2 :: Op
-
-foreign import ccall unsafe "BinaryenAllTrueVecI64x2" allTrueVecI64x2 :: Op
-
 foreign import ccall unsafe "BinaryenShlVecI64x2" shlVecI64x2 :: Op
 
 foreign import ccall unsafe "BinaryenShrSVecI64x2" shrSVecI64x2 :: Op

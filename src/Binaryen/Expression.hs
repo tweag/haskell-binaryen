@@ -406,7 +406,7 @@ foreign import ccall unsafe "BinaryenRefIsNull"
 
 foreign import ccall unsafe "BinaryenRefFunc"
   refFunc ::
-    Module -> Ptr CChar -> IO Expression
+    Module -> Ptr CChar -> Type -> IO Expression
 
 foreign import ccall unsafe "BinaryenTry"
   try ::
