@@ -24,6 +24,7 @@
 
 #include <memory>
 
+#include "asmjs/shared-constants.h"
 #include "ir/global-utils.h"
 #include "ir/import-utils.h"
 #include "ir/literal-utils.h"
@@ -465,7 +466,7 @@ int main(int argc, const char* argv[]) {
   options.applyFeatures(wasm);
 
   if (!WasmValidator().validate(wasm)) {
-    WasmPrinter::printModule(&wasm);
+    std::cout << wasm << '\n';
     Fatal() << "error in validating input";
   }
 

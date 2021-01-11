@@ -29,7 +29,6 @@
 #include "wasm-binary.h"
 #include "wasm-builder.h"
 #include "wasm-interpreter.h"
-#include "wasm-printing.h"
 #include "wasm-s-parser.h"
 #include "wasm-validator.h"
 #include "wasm.h"
@@ -178,151 +177,13 @@ WASM_DEPRECATED BinaryenType BinaryenUndefined(void) { return uint32_t(-1); }
 BinaryenExpressionId BinaryenInvalidId(void) {
   return Expression::Id::InvalidId;
 }
-BinaryenExpressionId BinaryenBlockId(void) { return Expression::Id::BlockId; }
-BinaryenExpressionId BinaryenIfId(void) { return Expression::Id::IfId; }
-BinaryenExpressionId BinaryenLoopId(void) { return Expression::Id::LoopId; }
-BinaryenExpressionId BinaryenBreakId(void) { return Expression::Id::BreakId; }
-BinaryenExpressionId BinaryenSwitchId(void) { return Expression::Id::SwitchId; }
-BinaryenExpressionId BinaryenCallId(void) { return Expression::Id::CallId; }
-BinaryenExpressionId BinaryenCallIndirectId(void) {
-  return Expression::Id::CallIndirectId;
-}
-BinaryenExpressionId BinaryenLocalGetId(void) {
-  return Expression::Id::LocalGetId;
-}
-BinaryenExpressionId BinaryenLocalSetId(void) {
-  return Expression::Id::LocalSetId;
-}
-BinaryenExpressionId BinaryenGlobalGetId(void) {
-  return Expression::Id::GlobalGetId;
-}
-BinaryenExpressionId BinaryenGlobalSetId(void) {
-  return Expression::Id::GlobalSetId;
-}
-BinaryenExpressionId BinaryenLoadId(void) { return Expression::Id::LoadId; }
-BinaryenExpressionId BinaryenStoreId(void) { return Expression::Id::StoreId; }
-BinaryenExpressionId BinaryenConstId(void) { return Expression::Id::ConstId; }
-BinaryenExpressionId BinaryenUnaryId(void) { return Expression::Id::UnaryId; }
-BinaryenExpressionId BinaryenBinaryId(void) { return Expression::Id::BinaryId; }
-BinaryenExpressionId BinaryenSelectId(void) { return Expression::Id::SelectId; }
-BinaryenExpressionId BinaryenDropId(void) { return Expression::Id::DropId; }
-BinaryenExpressionId BinaryenReturnId(void) { return Expression::Id::ReturnId; }
-BinaryenExpressionId BinaryenMemorySizeId(void) {
-  return Expression::Id::MemorySizeId;
-}
-BinaryenExpressionId BinaryenMemoryGrowId(void) {
-  return Expression::Id::MemoryGrowId;
-}
-BinaryenExpressionId BinaryenNopId(void) { return Expression::Id::NopId; }
-BinaryenExpressionId BinaryenUnreachableId(void) {
-  return Expression::Id::UnreachableId;
-}
-BinaryenExpressionId BinaryenAtomicCmpxchgId(void) {
-  return Expression::Id::AtomicCmpxchgId;
-}
-BinaryenExpressionId BinaryenAtomicRMWId(void) {
-  return Expression::Id::AtomicRMWId;
-}
-BinaryenExpressionId BinaryenAtomicWaitId(void) {
-  return Expression::Id::AtomicWaitId;
-}
-BinaryenExpressionId BinaryenAtomicNotifyId(void) {
-  return Expression::Id::AtomicNotifyId;
-}
-BinaryenExpressionId BinaryenAtomicFenceId(void) {
-  return Expression::Id::AtomicFenceId;
-}
-BinaryenExpressionId BinaryenSIMDExtractId(void) {
-  return Expression::Id::SIMDExtractId;
-}
-BinaryenExpressionId BinaryenSIMDReplaceId(void) {
-  return Expression::Id::SIMDReplaceId;
-}
-BinaryenExpressionId BinaryenSIMDShuffleId(void) {
-  return Expression::Id::SIMDShuffleId;
-}
-BinaryenExpressionId BinaryenSIMDTernaryId(void) {
-  return Expression::Id::SIMDTernaryId;
-}
-BinaryenExpressionId BinaryenSIMDShiftId(void) {
-  return Expression::Id::SIMDShiftId;
-}
-BinaryenExpressionId BinaryenSIMDLoadId(void) {
-  return Expression::Id::SIMDLoadId;
-}
-BinaryenExpressionId BinaryenMemoryInitId(void) {
-  return Expression::Id::MemoryInitId;
-}
-BinaryenExpressionId BinaryenDataDropId(void) {
-  return Expression::Id::DataDropId;
-}
-BinaryenExpressionId BinaryenMemoryCopyId(void) {
-  return Expression::Id::MemoryCopyId;
-}
-BinaryenExpressionId BinaryenMemoryFillId(void) {
-  return Expression::Id::MemoryFillId;
-}
-BinaryenExpressionId BinaryenRefNullId(void) {
-  return Expression::Id::RefNullId;
-}
-BinaryenExpressionId BinaryenRefIsNullId(void) {
-  return Expression::Id::RefIsNullId;
-}
-BinaryenExpressionId BinaryenRefFuncId(void) {
-  return Expression::Id::RefFuncId;
-}
-BinaryenExpressionId BinaryenRefEqId(void) { return Expression::Id::RefEqId; }
-BinaryenExpressionId BinaryenTryId(void) { return Expression::Id::TryId; }
-BinaryenExpressionId BinaryenThrowId(void) { return Expression::Id::ThrowId; }
-BinaryenExpressionId BinaryenRethrowId(void) {
-  return Expression::Id::RethrowId;
-}
-BinaryenExpressionId BinaryenBrOnExnId(void) {
-  return Expression::Id::BrOnExnId;
-}
-BinaryenExpressionId BinaryenTupleMakeId(void) {
-  return Expression::Id::TupleMakeId;
-}
-BinaryenExpressionId BinaryenTupleExtractId(void) {
-  return Expression::Id::TupleExtractId;
-}
-BinaryenExpressionId BinaryenPopId(void) { return Expression::Id::PopId; }
-BinaryenExpressionId BinaryenI31NewId(void) { return Expression::Id::I31NewId; }
-BinaryenExpressionId BinaryenI31GetId(void) { return Expression::Id::I31GetId; }
-BinaryenExpressionId BinaryenRefTestId(void) {
-  return Expression::Id::RefTestId;
-}
-BinaryenExpressionId BinaryenRefCastId(void) {
-  return Expression::Id::RefCastId;
-}
-BinaryenExpressionId BinaryenBrOnCastId(void) {
-  return Expression::Id::BrOnCastId;
-}
-BinaryenExpressionId BinaryenRttCanonId(void) {
-  return Expression::Id::RttCanonId;
-}
-BinaryenExpressionId BinaryenRttSubId(void) { return Expression::Id::RttSubId; }
-BinaryenExpressionId BinaryenStructNewId(void) {
-  return Expression::Id::StructNewId;
-}
-BinaryenExpressionId BinaryenStructGetId(void) {
-  return Expression::Id::StructGetId;
-}
-BinaryenExpressionId BinaryenStructSetId(void) {
-  return Expression::Id::StructSetId;
-}
-BinaryenExpressionId BinaryenArrayNewId(void) {
-  return Expression::Id::ArrayNewId;
-}
-BinaryenExpressionId BinaryenArrayGetId(void) {
-  return Expression::Id::ArrayGetId;
-}
-BinaryenExpressionId BinaryenArraySetId(void) {
-  return Expression::Id::ArraySetId;
-}
-BinaryenExpressionId BinaryenArrayLenId(void) {
-  return Expression::Id::ArrayLenId;
-}
+
+#define DELEGATE(CLASS_TO_VISIT)                                               \
+  BinaryenExpressionId Binaryen##CLASS_TO_VISIT##Id(void) {                    \
+    return Expression::Id::CLASS_TO_VISIT##Id;                                 \
+  }
+
+#include "wasm-delegations.h"
 
 // External kinds
 
@@ -562,12 +423,12 @@ BinaryenOp BinaryenLtFloat64(void) { return LtFloat64; }
 BinaryenOp BinaryenLeFloat64(void) { return LeFloat64; }
 BinaryenOp BinaryenGtFloat64(void) { return GtFloat64; }
 BinaryenOp BinaryenGeFloat64(void) { return GeFloat64; }
-BinaryenOp BinaryenAtomicRMWAdd(void) { return AtomicRMWOp::Add; }
-BinaryenOp BinaryenAtomicRMWSub(void) { return AtomicRMWOp::Sub; }
-BinaryenOp BinaryenAtomicRMWAnd(void) { return AtomicRMWOp::And; }
-BinaryenOp BinaryenAtomicRMWOr(void) { return AtomicRMWOp::Or; }
-BinaryenOp BinaryenAtomicRMWXor(void) { return AtomicRMWOp::Xor; }
-BinaryenOp BinaryenAtomicRMWXchg(void) { return AtomicRMWOp::Xchg; }
+BinaryenOp BinaryenAtomicRMWAdd(void) { return RMWAdd; }
+BinaryenOp BinaryenAtomicRMWSub(void) { return RMWSub; }
+BinaryenOp BinaryenAtomicRMWAnd(void) { return RMWAnd; }
+BinaryenOp BinaryenAtomicRMWOr(void) { return RMWOr; }
+BinaryenOp BinaryenAtomicRMWXor(void) { return RMWXor; }
+BinaryenOp BinaryenAtomicRMWXchg(void) { return RMWXchg; }
 BinaryenOp BinaryenTruncSatSFloat32ToInt32(void) {
   return TruncSatSFloat32ToInt32;
 }
@@ -719,8 +580,6 @@ BinaryenOp BinaryenDotSVecI16x8ToVecI32x4(void) {
   return DotSVecI16x8ToVecI32x4;
 }
 BinaryenOp BinaryenNegVecI64x2(void) { return NegVecI64x2; }
-BinaryenOp BinaryenAnyTrueVecI64x2(void) { return AnyTrueVecI64x2; }
-BinaryenOp BinaryenAllTrueVecI64x2(void) { return AllTrueVecI64x2; }
 BinaryenOp BinaryenShlVecI64x2(void) { return ShlVecI64x2; }
 BinaryenOp BinaryenShrSVecI64x2(void) { return ShrSVecI64x2; }
 BinaryenOp BinaryenShrUVecI64x2(void) { return ShrUVecI64x2; }
@@ -1325,9 +1184,11 @@ BinaryenExpressionRef BinaryenRefIsNull(BinaryenModuleRef module,
     Builder(*(Module*)module).makeRefIsNull((Expression*)value));
 }
 
-BinaryenExpressionRef BinaryenRefFunc(BinaryenModuleRef module,
-                                      const char* func) {
-  return static_cast<Expression*>(Builder(*(Module*)module).makeRefFunc(func));
+BinaryenExpressionRef
+BinaryenRefFunc(BinaryenModuleRef module, const char* func, BinaryenType type) {
+  Type type_(type);
+  return static_cast<Expression*>(
+    Builder(*(Module*)module).makeRefFunc(func, type_));
 }
 
 BinaryenExpressionRef BinaryenRefEq(BinaryenModuleRef module,
@@ -1412,8 +1273,7 @@ void BinaryenExpressionSetType(BinaryenExpressionRef expr, BinaryenType type) {
   ((Expression*)expr)->type = Type(type);
 }
 void BinaryenExpressionPrint(BinaryenExpressionRef expr) {
-  WasmPrinter::printExpression((Expression*)expr, std::cout);
-  std::cout << '\n';
+  std::cout << *(Expression*)expr << '\n';
 }
 void BinaryenExpressionFinalize(BinaryenExpressionRef expr) {
   ReFinalizeNode().visit((Expression*)expr);
@@ -3131,7 +2991,7 @@ BinaryenFunctionRef BinaryenAddFunction(BinaryenModuleRef module,
                                         BinaryenIndex numVarTypes,
                                         BinaryenExpressionRef body) {
   auto* ret = new Function;
-  ret->name = name;
+  ret->setExplicitName(name);
   ret->sig = Signature(Type(params), Type(results));
   for (BinaryenIndex i = 0; i < numVarTypes; i++) {
     ret->vars.push_back(Type(varTypes[i]));
@@ -3149,21 +3009,21 @@ BinaryenFunctionRef BinaryenAddFunction(BinaryenModuleRef module,
 }
 BinaryenFunctionRef BinaryenGetFunction(BinaryenModuleRef module,
                                         const char* name) {
-  return ((Module*)module)->getFunction(name);
+  return ((Module*)module)->getFunctionOrNull(name);
 }
 void BinaryenRemoveFunction(BinaryenModuleRef module, const char* name) {
   ((Module*)module)->removeFunction(name);
 }
-uint32_t BinaryenGetNumFunctions(BinaryenModuleRef module) {
+BinaryenIndex BinaryenGetNumFunctions(BinaryenModuleRef module) {
   return ((Module*)module)->functions.size();
 }
 BinaryenFunctionRef BinaryenGetFunctionByIndex(BinaryenModuleRef module,
-                                               BinaryenIndex id) {
+                                               BinaryenIndex index) {
   const auto& functions = ((Module*)module)->functions;
-  if (functions.size() <= id) {
-    Fatal() << "invalid function id.";
+  if (functions.size() <= index) {
+    Fatal() << "invalid function index.";
   }
-  return functions[id].get();
+  return functions[index].get();
 }
 
 // Globals
@@ -3174,7 +3034,7 @@ BinaryenGlobalRef BinaryenAddGlobal(BinaryenModuleRef module,
                                     int8_t mutable_,
                                     BinaryenExpressionRef init) {
   auto* ret = new Global();
-  ret->name = name;
+  ret->setExplicitName(name);
   ret->type = Type(type);
   ret->mutable_ = !!mutable_;
   ret->init = (Expression*)init;
@@ -3183,10 +3043,21 @@ BinaryenGlobalRef BinaryenAddGlobal(BinaryenModuleRef module,
 }
 BinaryenGlobalRef BinaryenGetGlobal(BinaryenModuleRef module,
                                     const char* name) {
-  return ((Module*)module)->getGlobal(name);
+  return ((Module*)module)->getGlobalOrNull(name);
 }
 void BinaryenRemoveGlobal(BinaryenModuleRef module, const char* name) {
   ((Module*)module)->removeGlobal(name);
+}
+BinaryenIndex BinaryenGetNumGlobals(BinaryenModuleRef module) {
+  return ((Module*)module)->globals.size();
+}
+BinaryenGlobalRef BinaryenGetGlobalByIndex(BinaryenModuleRef module,
+                                           BinaryenIndex index) {
+  const auto& globals = ((Module*)module)->globals;
+  if (globals.size() <= index) {
+    Fatal() << "invalid global index.";
+  }
+  return globals[index].get();
 }
 
 // Events
@@ -3197,7 +3068,7 @@ BinaryenEventRef BinaryenAddEvent(BinaryenModuleRef module,
                                   BinaryenType params,
                                   BinaryenType results) {
   auto* ret = new Event();
-  ret->name = name;
+  ret->setExplicitName(name);
   ret->attribute = attribute;
   ret->sig = Signature(Type(params), Type(results));
   ((Module*)module)->addEvent(ret);
@@ -3205,7 +3076,7 @@ BinaryenEventRef BinaryenAddEvent(BinaryenModuleRef module,
 }
 
 BinaryenEventRef BinaryenGetEvent(BinaryenModuleRef module, const char* name) {
-  return ((Module*)module)->getEvent(name);
+  return ((Module*)module)->getEventOrNull(name);
 }
 void BinaryenRemoveEvent(BinaryenModuleRef module, const char* name) {
   ((Module*)module)->removeEvent(name);
@@ -3330,8 +3201,23 @@ BinaryenExportRef BinaryenAddEventExport(BinaryenModuleRef module,
   ((Module*)module)->addExport(ret);
   return ret;
 }
+BinaryenExportRef BinaryenGetExport(BinaryenModuleRef module,
+                                    const char* externalName) {
+  return ((Module*)module)->getExportOrNull(externalName);
+}
 void BinaryenRemoveExport(BinaryenModuleRef module, const char* externalName) {
   ((Module*)module)->removeExport(externalName);
+}
+BinaryenIndex BinaryenGetNumExports(BinaryenModuleRef module) {
+  return ((Module*)module)->exports.size();
+}
+BinaryenExportRef BinaryenGetExportByIndex(BinaryenModuleRef module,
+                                           BinaryenIndex index) {
+  const auto& exports = ((Module*)module)->exports;
+  if (exports.size() <= index) {
+    Fatal() << "invalid export index.";
+  }
+  return exports[index].get();
 }
 
 // Function table. One per module
@@ -3412,7 +3298,8 @@ void BinaryenSetMemory(BinaryenModuleRef module,
     wasm->addExport(memoryExport.release());
   }
   for (BinaryenIndex i = 0; i < numSegments; i++) {
-    wasm->memory.segments.emplace_back(segmentPassive[i],
+    wasm->memory.segments.emplace_back(Name(),
+                                       segmentPassive[i],
                                        (Expression*)segmentOffsets[i],
                                        segments[i],
                                        segmentSizes[i]);
@@ -3518,7 +3405,7 @@ BinaryenModuleRef BinaryenModuleParse(const char* text) {
 }
 
 void BinaryenModulePrint(BinaryenModuleRef module) {
-  WasmPrinter::printModule((Module*)module);
+  std::cout << *(Module*)module;
 }
 
 void BinaryenModulePrintAsmjs(BinaryenModuleRef module) {
@@ -3682,7 +3569,7 @@ size_t BinaryenModuleWriteText(BinaryenModuleRef module,
   // use a stringstream as an std::ostream. Extract the std::string
   // representation, and then store in the output.
   std::stringstream ss;
-  WasmPrinter::printModule((Module*)module, ss);
+  ss << *(Module*)module;
 
   const auto temp = ss.str();
   const auto ctemp = temp.c_str();
@@ -3727,7 +3614,7 @@ BinaryenModuleAllocateAndWrite(BinaryenModuleRef module,
 
 char* BinaryenModuleAllocateAndWriteText(BinaryenModuleRef module) {
   std::stringstream ss;
-  WasmPrinter::printModule((Module*)module, ss);
+  ss << *(Module*)module;
 
   const std::string out = ss.str();
   const int len = out.length() + 1;
@@ -3822,7 +3709,7 @@ void BinaryenFunctionOptimize(BinaryenFunctionRef func,
                               BinaryenModuleRef module) {
   PassRunner passRunner((Module*)module);
   passRunner.options = globalPassOptions;
-  passRunner.addDefaultOptimizationPasses();
+  passRunner.addDefaultFunctionOptimizationPasses();
   passRunner.runOnFunction((Function*)func);
 }
 void BinaryenFunctionRunPasses(BinaryenFunctionRef func,
@@ -3948,17 +3835,6 @@ const char* BinaryenExportGetName(BinaryenExportRef export_) {
 }
 const char* BinaryenExportGetValue(BinaryenExportRef export_) {
   return ((Export*)export_)->value.c_str();
-}
-uint32_t BinaryenGetNumExports(BinaryenModuleRef module) {
-  return ((Module*)module)->exports.size();
-}
-BinaryenExportRef BinaryenGetExportByIndex(BinaryenModuleRef module,
-                                           BinaryenIndex id) {
-  const auto& exports = ((Module*)module)->exports;
-  if (exports.size() <= id) {
-    Fatal() << "invalid export id.";
-  }
-  return exports[id].get();
 }
 
 //

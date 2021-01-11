@@ -1,14 +1,14 @@
 {
     "binaryen": {
-        "branch": "version_98",
+        "branch": "version_99",
         "description": "Compiler infrastructure and toolchain library for WebAssembly",
         "homepage": "",
         "owner": "WebAssembly",
         "repo": "binaryen",
-        "rev": "8dfe13494b97f0204670935b9cfa7a45a4ac61ab",
-        "sha256": "1zajajpszah0q5jmn04g34xsqljnjrr3m2g0i98iwv0f9ywkb41k",
+        "rev": "6a35e33f126d80e7583821e584ae9d101ba0ccb5",
+        "sha256": "1a6ixxm1f8mrr9mn6a0pimajdzsdr4w1qhr92skxq67168vvc1ic",
         "type": "tarball",
-        "url": "https://github.com/WebAssembly/binaryen/archive/8dfe13494b97f0204670935b9cfa7a45a4ac61ab.tar.gz",
+        "url": "https://github.com/WebAssembly/binaryen/archive/6a35e33f126d80e7583821e584ae9d101ba0ccb5.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell-nix": {
@@ -17,10 +17,10 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "3beaf26583d268e08707e0ad2ba9b186b33dc61a",
-        "sha256": "18pjlsh1c5jdn1s23lb6bnxhrf1ckhkbkh46vxyv8js239zdmp68",
+        "rev": "0f7c5afc41ad315824271ef7f7357e3a8da9908a",
+        "sha256": "0bzj9jsf8vcp1hdk6n7agl5ik2kqp36yr2cibgr1pfa1kxh64lkq",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/3beaf26583d268e08707e0ad2ba9b186b33dc61a.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/0f7c5afc41ad315824271ef7f7357e3a8da9908a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
@@ -29,22 +29,10 @@
         "homepage": "https://github.com/nmattia/niv",
         "owner": "nmattia",
         "repo": "niv",
-        "rev": "9d35b9e4837ab88517210b1701127612c260eccf",
-        "sha256": "0q50xhnm8g2yfyakrh0nly4swyygxpi0a8cb9gp65wcakcgvzvdh",
+        "rev": "94dadba1a3a6a2f0b8ca2963e49daeec5d4e3098",
+        "sha256": "1y2h9wl7w60maa2m4xw9231xdr325xynzpph8xr4j5vsznygv986",
         "type": "tarball",
-        "url": "https://github.com/nmattia/niv/archive/9d35b9e4837ab88517210b1701127612c260eccf.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "ormolu": {
-        "branch": "master",
-        "description": "A formatter for Haskell source code",
-        "homepage": null,
-        "owner": "tweag",
-        "repo": "ormolu",
-        "rev": "f896262aee3170c823ad70fe11945e64cdc24b9c",
-        "sha256": "0hr94mxkvxys3n8nr5r4kmgmhx2k3y831wr3dfjs2y1nw3ldzrhr",
-        "type": "tarball",
-        "url": "https://github.com/tweag/ormolu/archive/f896262aee3170c823ad70fe11945e64cdc24b9c.tar.gz",
+        "url": "https://github.com/nmattia/niv/archive/94dadba1a3a6a2f0b8ca2963e49daeec5d4e3098.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

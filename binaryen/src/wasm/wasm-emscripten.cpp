@@ -38,7 +38,6 @@ cashew::IString EM_ASM_PREFIX("emscripten_asm_const");
 cashew::IString EM_JS_PREFIX("__em_js__");
 
 static Name STACK_INIT("stack$init");
-static Name POST_INSTANTIATE("__post_instantiate");
 
 void addExportedFunction(Module& wasm, Function* function) {
   wasm.addFunction(function);
@@ -75,73 +74,6 @@ Global* getStackPointerGlobal(Module& wasm) {
   return nullptr;
 }
 
-// For emscripten SIDE_MODULE we generate a single exported function called
-// __post_instantiate which calls two functions:
-//
-// - __assign_got_enties
-// - __wasm_call_ctors
-//
-// The former is function we generate here which calls imported g$XXX functions
-// order to assign values to any globals imported from GOT.func or GOT.mem.
-// These globals hold address of functions and globals respectively.
-//
-// The later is the constructor function generaed by lld which performs any
-// fixups on the memory section and calls static constructors.
-void EmscriptenGlueGenerator::generatePostInstantiateFunction() {
-  BYN_TRACE("generatePostInstantiateFunction\n");
-  Builder builder(wasm);
-  Function* post_instantiate = builder.makeFunction(
-    POST_INSTANTIATE, std::vector<NameType>{}, Type::none, {});
-  wasm.addFunction(post_instantiate);
-
-  if (Function* F = wasm.getFunctionOrNull(ASSIGN_GOT_ENTRIES)) {
-    // call __assign_got_enties from post_instantiate
-    Expression* call = builder.makeCall(F->name, {}, Type::none);
-    post_instantiate->body = builder.blockify(post_instantiate->body, call);
-  }
-
-  // The names of standard imports/exports used by lld doesn't quite match that
-  // expected by emscripten.
-  // TODO(sbc): Unify these
-  if (auto* e = wasm.getExportOrNull(WASM_CALL_CTORS)) {
-    Expression* call = builder.makeCall(e->value, {}, Type::none);
-    post_instantiate->body = builder.blockify(post_instantiate->body, call);
-    wasm.removeExport(WASM_CALL_CTORS);
-  }
-
-  auto* ex = new Export();
-  ex->value = post_instantiate->name;
-  ex->name = POST_INSTANTIATE;
-  ex->kind = ExternalKind::Function;
-  wasm.addExport(ex);
-}
-
-// lld can sometimes produce a build with an imported mutable __stack_pointer
-// (i.e.  when linking with -fpie).  This method internalizes the
-// __stack_pointer and initializes it from an immutable global instead.
-// For -shared builds we instead call replaceStackPointerGlobal.
-void EmscriptenGlueGenerator::internalizeStackPointerGlobal() {
-  Global* stackPointer = getStackPointerGlobal(wasm);
-  if (!stackPointer || !stackPointer->imported() || !stackPointer->mutable_) {
-    return;
-  }
-
-  Name internalName = stackPointer->name;
-  Name externalName = internalName.c_str() + std::string("_import");
-
-  // Rename the imported global, and make it immutable
-  stackPointer->name = externalName;
-  stackPointer->mutable_ = false;
-  wasm.updateMaps();
-
-  // Create a new global with the old name that is not imported.
-  Builder builder(wasm);
-  auto* init = builder.makeGlobalGet(externalName, stackPointer->type);
-  auto* sp = builder.makeGlobal(
-    internalName, stackPointer->type, init, Builder::Mutable);
-  wasm.addGlobal(sp);
-}
-
 const Address UNKNOWN_OFFSET(uint32_t(-1));
 
 std::vector<Address> getSegmentOffsets(Module& wasm) {
@@ -153,9 +85,19 @@ std::vector<Address> getSegmentOffsets(Module& wasm) {
       OffsetSearcher(std::unordered_map<unsigned, Address>& offsets)
         : offsets(offsets) {}
       void visitMemoryInit(MemoryInit* curr) {
+        // The desitination of the memory.init is either a constant
+        // or the result of an addition with __memory_base in the
+        // case of PIC code.
         auto* dest = curr->dest->dynCast<Const>();
         if (!dest) {
-          return;
+          auto* add = curr->dest->dynCast<Binary>();
+          if (!add) {
+            return;
+          }
+          dest = add->left->dynCast<Const>();
+          if (!dest) {
+            return;
+          }
         }
         auto it = offsets.find(curr->segment);
         if (it != offsets.end()) {
@@ -235,12 +177,10 @@ const char* stringAtAddr(Module& wasm,
 
 std::string codeForConstAddr(Module& wasm,
                              std::vector<Address> const& segmentOffsets,
-                             int32_t address) {
+                             int64_t address) {
   const char* str = stringAtAddr(wasm, segmentOffsets, address);
   if (!str) {
-    // If we can't find the segment corresponding with the address, then we
-    // omitted the segment and the address points to an empty string.
-    return escape("");
+    Fatal() << "unable to find data for ASM/EM_JS const at: " << address;
   }
   return escape(str);
 }
@@ -292,10 +232,9 @@ struct AsmConstWalker : public LinearExecutionWalker<AsmConstWalker> {
   void process();
 
 private:
-  void createAsmConst(uint32_t id, std::string code, Signature sig, Name name);
+  void createAsmConst(uint64_t id, std::string code, Signature sig, Name name);
   Signature asmConstSig(Signature baseSig);
   Name nameForImportWithSig(Signature sig, Proxying proxy);
-  void queueImport(Name importName, Signature baseSig);
   void addImports();
   Proxying proxyType(Name name);
 
@@ -352,7 +291,7 @@ void AsmConstWalker::visitCall(Call* curr) {
     }
 
     if (auto* bin = arg->dynCast<Binary>()) {
-      if (bin->op == AddInt32) {
+      if (bin->op == AddInt32 || bin->op == AddInt64) {
         // In the dynamic linking case the address of the string constant
         // is the result of adding its offset to __memory_base.
         // In this case are only looking for the offset from __memory_base
@@ -362,12 +301,21 @@ void AsmConstWalker::visitCall(Call* curr) {
       }
     }
 
+    if (auto* unary = arg->dynCast<Unary>()) {
+      if (unary->op == WrapInt64) {
+        // This cast may be inserted around the string constant in the
+        // Memory64Lowering pass.
+        arg = unary->value;
+        continue;
+      }
+    }
+
     Fatal() << "Unexpected arg0 type (" << getExpressionName(arg)
             << ") in call to: " << importName;
   }
 
   auto* value = arg->cast<Const>();
-  int32_t address = value->value.geti32();
+  int64_t address = value->value.getInteger();
   auto code = codeForConstAddr(wasm, segmentOffsets, address);
   createAsmConst(address, code, sig, importName);
 }
@@ -389,7 +337,7 @@ void AsmConstWalker::process() {
   addImports();
 }
 
-void AsmConstWalker::createAsmConst(uint32_t id,
+void AsmConstWalker::createAsmConst(uint64_t id,
                                     std::string code,
                                     Signature sig,
                                     Name name) {
@@ -408,21 +356,6 @@ Signature AsmConstWalker::asmConstSig(Signature baseSig) {
   return Signature(
     Type(std::vector<Type>(baseSig.params.begin() + 1, baseSig.params.end())),
     baseSig.results);
-}
-
-Name AsmConstWalker::nameForImportWithSig(Signature sig, Proxying proxy) {
-  std::string fixedTarget = EM_ASM_PREFIX.str + std::string("_") +
-                            proxyingSuffix(proxy) +
-                            getSig(sig.results, sig.params);
-  return Name(fixedTarget.c_str());
-}
-
-void AsmConstWalker::queueImport(Name importName, Signature baseSig) {
-  auto import = new Function;
-  import->name = import->base = importName;
-  import->module = ENV;
-  import->sig = baseSig;
-  queuedImports.push_back(std::unique_ptr<Function>(import));
 }
 
 void AsmConstWalker::addImports() {
@@ -464,7 +397,7 @@ struct EmJsWalker : public PostWalker<EmJsWalker> {
       Fatal() << "Unexpected generated __em_js__ function body: " << curr->name;
     }
     auto* addrConst = consts.list[0];
-    int32_t address = addrConst->value.geti32();
+    int64_t address = addrConst->value.getInteger();
     auto code = codeForConstAddr(wasm, segmentOffsets, address);
     codeByName[funcName] = code;
   }
@@ -501,8 +434,8 @@ void printSignatures(std::ostream& o, const std::set<Signature>& c) {
   o << "]";
 }
 
-std::string EmscriptenGlueGenerator::generateEmscriptenMetadata(
-  Address staticBump, std::vector<Name> const& initializerFunctions) {
+std::string
+EmscriptenGlueGenerator::generateEmscriptenMetadata(Name initializer) {
   bool commaFirst;
   auto nextElement = [&commaFirst]() {
     if (commaFirst) {
@@ -547,16 +480,11 @@ std::string EmscriptenGlueGenerator::generateEmscriptenMetadata(
     meta << "\n  },\n";
   }
 
-  meta << "  \"staticBump\": " << staticBump << ",\n";
   meta << "  \"tableSize\": " << wasm.table.initial.addr << ",\n";
 
-  if (!initializerFunctions.empty()) {
+  if (initializer.is()) {
     meta << "  \"initializers\": [";
-    commaFirst = true;
-    for (const auto& func : initializerFunctions) {
-      meta << nextElement();
-      meta << "\"" << func.c_str() << "\"";
-    }
+    meta << "\n    \"" << initializer.c_str() << "\"";
     meta << "\n  ],\n";
   }
 

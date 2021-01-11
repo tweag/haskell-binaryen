@@ -37,6 +37,11 @@ Literal::Literal(Type type) : type(type) {
     assert(type != Type::unreachable && (!type.isRef() || type.isNullable()));
     if (type.isException()) {
       new (&exn) std::unique_ptr<ExceptionPackage>();
+    } else if (isGCData()) {
+      new (&gcData) std::shared_ptr<GCData>();
+    } else if (type.isRtt()) {
+      // Allocate a new RttSupers (with no data).
+      new (&rttSupers) auto(std::make_unique<RttSupers>());
     } else {
       memset(&v128, 0, 16);
     }
@@ -47,6 +52,19 @@ Literal::Literal(const uint8_t init[16]) : type(Type::v128) {
   memcpy(&v128, init, 16);
 }
 
+Literal::Literal(std::shared_ptr<GCData> gcData, Type type)
+  : gcData(gcData), type(type) {
+  // Null data is only allowed if nullable.
+  assert(gcData || type.isNullable());
+  // The type must be a proper type for GC data.
+  assert(isGCData());
+}
+
+Literal::Literal(std::unique_ptr<RttSupers>&& rttSupers, Type type)
+  : rttSupers(std::move(rttSupers)), type(type) {
+  assert(type.isRtt());
+}
+
 Literal::Literal(const Literal& other) : type(other.type) {
   if (type.isException()) {
     // Avoid calling the destructor on an uninitialized value
@@ -55,8 +73,13 @@ Literal::Literal(const Literal& other) : type(other.type) {
     } else {
       new (&exn) std::unique_ptr<ExceptionPackage>();
     }
+  } else if (other.isGCData()) {
+    new (&gcData) std::shared_ptr<GCData>(other.gcData);
   } else if (type.isFunction()) {
     func = other.func;
+  } else if (type.isRtt()) {
+    // Allocate a new RttSupers with a copy of the other's data.
+    new (&rttSupers) auto(std::make_unique<RttSupers>(*other.rttSupers));
   } else {
     TODO_SINGLE_COMPOUND(type);
     switch (type.getBasic()) {
@@ -83,6 +106,21 @@ Literal::Literal(const Literal& other) : type(other.type) {
       case Type::unreachable:
         WASM_UNREACHABLE("unexpected type");
     }
+  }
+}
+
+Literal::~Literal() {
+  if (type.isException()) {
+    exn.~unique_ptr();
+  } else if (isGCData()) {
+    gcData.~shared_ptr();
+  } else if (type.isRtt()) {
+    rttSupers.~unique_ptr();
+  } else if (type.isFunction()) {
+    // Nothing special to do.
+  } else {
+    // Basic types need no special handling.
+    assert(type.isBasic());
   }
 }
 
@@ -162,6 +200,8 @@ Literal Literal::makeZero(Type type) {
     } else {
       return makeNull(type);
     }
+  } else if (type.isRtt()) {
+    return Literal(type);
   } else {
     return makeFromInt32(0, type);
   }
@@ -187,6 +227,16 @@ std::array<uint8_t, 16> Literal::getv128() const {
 ExceptionPackage Literal::getExceptionPackage() const {
   assert(type.isException() && exn != nullptr);
   return *exn;
+}
+
+std::shared_ptr<GCData> Literal::getGCData() const {
+  assert(isGCData());
+  return gcData;
+}
+
+const RttSupers& Literal::getRttSupers() const {
+  assert(type.isRtt());
+  return *rttSupers;
 }
 
 Literal Literal::castToF32() {
@@ -322,7 +372,7 @@ bool Literal::operator==(const Literal& other) const {
   } else if (type.isRef()) {
     return compareRef();
   } else if (type.isRtt()) {
-    WASM_UNREACHABLE("TODO: rtt literals");
+    return *rttSupers == *other.rttSupers;
   }
   WASM_UNREACHABLE("unexpected type");
 }
@@ -422,58 +472,72 @@ void Literal::printVec128(std::ostream& o, const std::array<uint8_t, 16>& v) {
 
 std::ostream& operator<<(std::ostream& o, Literal literal) {
   prepareMinorColor(o);
-  TODO_SINGLE_COMPOUND(literal.type);
-  switch (literal.type.getBasic()) {
-    case Type::none:
-      o << "?";
-      break;
-    case Type::i32:
-      o << literal.geti32();
-      break;
-    case Type::i64:
-      o << literal.geti64();
-      break;
-    case Type::f32:
-      literal.printFloat(o, literal.getf32());
-      break;
-    case Type::f64:
-      literal.printDouble(o, literal.getf64());
-      break;
-    case Type::v128:
-      o << "i32x4 ";
-      literal.printVec128(o, literal.getv128());
-      break;
-    case Type::funcref:
-      if (literal.isNull()) {
-        o << "funcref(null)";
-      } else {
-        o << "funcref(" << literal.getFunc() << ")";
-      }
-      break;
-    case Type::externref:
-      assert(literal.isNull() && "unexpected non-null externref literal");
-      o << "externref(null)";
-      break;
-    case Type::exnref:
-      if (literal.isNull()) {
-        o << "exnref(null)";
-      } else {
-        o << "exnref(" << literal.getExceptionPackage() << ")";
-      }
-      break;
-    case Type::anyref:
-      assert(literal.isNull() && "unexpected non-null anyref literal");
-      o << "anyref(null)";
-      break;
-    case Type::eqref:
-      assert(literal.isNull() && "unexpected non-null eqref literal");
-      o << "eqref(null)";
-      break;
-    case Type::i31ref:
-      o << "i31ref(" << literal.geti31() << ")";
-      break;
-    case Type::unreachable:
-      WASM_UNREACHABLE("invalid type");
+  if (literal.type.isFunction()) {
+    if (literal.isNull()) {
+      o << "funcref(null)";
+    } else {
+      o << "funcref(" << literal.getFunc() << ")";
+    }
+  } else if (literal.isGCData()) {
+    auto data = literal.getGCData();
+    if (data) {
+      o << "[ref " << data->rtt << ' ' << data->values << ']';
+    } else {
+      o << "[ref null " << literal.type << ']';
+    }
+  } else if (literal.type.isRtt()) {
+    o << "[rtt ";
+    for (Type super : literal.getRttSupers()) {
+      o << super << " :> ";
+    }
+    o << literal.type << ']';
+  } else {
+    TODO_SINGLE_COMPOUND(literal.type);
+    switch (literal.type.getBasic()) {
+      case Type::none:
+        o << "?";
+        break;
+      case Type::i32:
+        o << literal.geti32();
+        break;
+      case Type::i64:
+        o << literal.geti64();
+        break;
+      case Type::f32:
+        literal.printFloat(o, literal.getf32());
+        break;
+      case Type::f64:
+        literal.printDouble(o, literal.getf64());
+        break;
+      case Type::v128:
+        o << "i32x4 ";
+        literal.printVec128(o, literal.getv128());
+        break;
+      case Type::externref:
+        assert(literal.isNull() && "unexpected non-null externref literal");
+        o << "externref(null)";
+        break;
+      case Type::exnref:
+        if (literal.isNull()) {
+          o << "exnref(null)";
+        } else {
+          o << "exnref(" << literal.getExceptionPackage() << ")";
+        }
+        break;
+      case Type::anyref:
+        assert(literal.isNull() && "unexpected non-null anyref literal");
+        o << "anyref(null)";
+        break;
+      case Type::eqref:
+        assert(literal.isNull() && "unexpected non-null eqref literal");
+        o << "eqref(null)";
+        break;
+      case Type::i31ref:
+        o << "i31ref(" << literal.geti31() << ")";
+        break;
+      default:
+        WASM_UNREACHABLE("invalid type");
+    }
   }
   restoreNormalColor(o);
   return o;
@@ -837,6 +901,40 @@ Literal Literal::demote() const {
   return Literal(float(getf64()));
 }
 
+// Wasm has nondeterministic rules for NaN propagation in some operations. For
+// example. f32.neg is deterministic and just flips the sign, even of a NaN, but
+// f32.add is nondeterministic, and if one or more of the inputs is a NaN, then
+//
+//  * if all NaNs are canonical NaNs, the output is some arbitrary canonical NaN
+//  * otherwise the output is some arbitrary arithmetic NaN
+//
+// (canonical = NaN payload is 1000..000; arithmetic: 1???..???, that is, the
+// high bit is 1 and all others can be 0 or 1)
+//
+// For many things we don't need to care, and can just do a normal C++ add for
+// an f32.add, for example - the wasm rules are specified so that things like
+// that just work (in order for such math to be fast). However, for our
+// optimizer, it is useful to "standardize" NaNs when there is nondeterminism.
+// That is, when there are multiple valid outputs, it's nice to emit the same
+// one consistently, so that it doesn't look like the optimization changed
+// something. In other words, if the valid output of an expression is a set of
+// valid NaNs, and after optimization the output is still that same set, then
+// the optimization is valid. And if the interpreter picks the same NaN in both
+// cases from that identical set then nothing looks wrong to the fuzzer.
+template<typename T> static Literal standardizeNaN(T result) {
+  if (!std::isnan(result)) {
+    return Literal(result);
+  }
+  // Pick a simple canonical payload, and positive.
+  if (sizeof(T) == 4) {
+    return Literal(Literal(uint32_t(0x7fc00000u)).reinterpretf32());
+  } else if (sizeof(T) == 8) {
+    return Literal(Literal(uint64_t(0x7ff8000000000000ull)).reinterpretf64());
+  } else {
+    WASM_UNREACHABLE("invalid float");
+  }
+}
+
 Literal Literal::add(const Literal& other) const {
   switch (type.getBasic()) {
     case Type::i32:
@@ -844,9 +942,9 @@ Literal Literal::add(const Literal& other) const {
     case Type::i64:
       return Literal(uint64_t(i64) + uint64_t(other.i64));
     case Type::f32:
-      return Literal(getf32() + other.getf32());
+      return standardizeNaN(getf32() + other.getf32());
     case Type::f64:
-      return Literal(getf64() + other.getf64());
+      return standardizeNaN(getf64() + other.getf64());
     case Type::v128:
     case Type::funcref:
     case Type::externref:
@@ -868,9 +966,9 @@ Literal Literal::sub(const Literal& other) const {
     case Type::i64:
       return Literal(uint64_t(i64) - uint64_t(other.i64));
     case Type::f32:
-      return Literal(getf32() - other.getf32());
+      return standardizeNaN(getf32() - other.getf32());
     case Type::f64:
-      return Literal(getf64() - other.getf64());
+      return standardizeNaN(getf64() - other.getf64());
     case Type::v128:
     case Type::funcref:
     case Type::externref:
@@ -963,9 +1061,9 @@ Literal Literal::mul(const Literal& other) const {
     case Type::i64:
       return Literal(uint64_t(i64) * uint64_t(other.i64));
     case Type::f32:
-      return Literal(getf32() * other.getf32());
+      return standardizeNaN(getf32() * other.getf32());
     case Type::f64:
-      return Literal(getf64() * other.getf64());
+      return standardizeNaN(getf64() * other.getf64());
     case Type::v128:
     case Type::funcref:
     case Type::externref:
@@ -989,10 +1087,8 @@ Literal Literal::div(const Literal& other) const {
         case FP_ZERO:
           switch (std::fpclassify(lhs)) {
             case FP_NAN:
-              return Literal(setQuietNaN(lhs));
             case FP_ZERO:
-              return Literal(
-                std::copysign(std::numeric_limits<float>::quiet_NaN(), sign));
+              return standardizeNaN(lhs / rhs);
             case FP_NORMAL:    // fallthrough
             case FP_SUBNORMAL: // fallthrough
             case FP_INFINITE:
@@ -1005,7 +1101,7 @@ Literal Literal::div(const Literal& other) const {
         case FP_INFINITE: // fallthrough
         case FP_NORMAL:   // fallthrough
         case FP_SUBNORMAL:
-          return Literal(lhs / rhs);
+          return standardizeNaN(lhs / rhs);
         default:
           WASM_UNREACHABLE("invalid fp classification");
       }
@@ -1017,10 +1113,8 @@ Literal Literal::div(const Literal& other) const {
         case FP_ZERO:
           switch (std::fpclassify(lhs)) {
             case FP_NAN:
-              return Literal(setQuietNaN(lhs));
             case FP_ZERO:
-              return Literal(
-                std::copysign(std::numeric_limits<double>::quiet_NaN(), sign));
+              return standardizeNaN(lhs / rhs);
             case FP_NORMAL:    // fallthrough
             case FP_SUBNORMAL: // fallthrough
             case FP_INFINITE:
@@ -1033,7 +1127,7 @@ Literal Literal::div(const Literal& other) const {
         case FP_INFINITE: // fallthrough
         case FP_NORMAL:   // fallthrough
         case FP_SUBNORMAL:
-          return Literal(lhs / rhs);
+          return standardizeNaN(lhs / rhs);
         default:
           WASM_UNREACHABLE("invalid fp classification");
       }
@@ -1380,39 +1474,29 @@ Literal Literal::min(const Literal& other) const {
   switch (type.getBasic()) {
     case Type::f32: {
       auto l = getf32(), r = other.getf32();
+      if (std::isnan(l)) {
+        return standardizeNaN(l);
+      }
+      if (std::isnan(r)) {
+        return standardizeNaN(r);
+      }
       if (l == r && l == 0) {
         return Literal(std::signbit(l) ? l : r);
       }
-      auto result = std::min(l, r);
-      bool lnan = std::isnan(l), rnan = std::isnan(r);
-      if (!std::isnan(result) && !lnan && !rnan) {
-        return Literal(result);
-      }
-      if (!lnan && !rnan) {
-        return Literal((int32_t)0x7fc00000).castToF32();
-      }
-      return Literal(lnan ? l : r)
-        .castToI32()
-        .or_(Literal(0xc00000))
-        .castToF32();
+      return Literal(std::min(l, r));
     }
     case Type::f64: {
       auto l = getf64(), r = other.getf64();
+      if (std::isnan(l)) {
+        return standardizeNaN(l);
+      }
+      if (std::isnan(r)) {
+        return standardizeNaN(r);
+      }
       if (l == r && l == 0) {
         return Literal(std::signbit(l) ? l : r);
       }
-      auto result = std::min(l, r);
-      bool lnan = std::isnan(l), rnan = std::isnan(r);
-      if (!std::isnan(result) && !lnan && !rnan) {
-        return Literal(result);
-      }
-      if (!lnan && !rnan) {
-        return Literal((int64_t)0x7ff8000000000000LL).castToF64();
-      }
-      return Literal(lnan ? l : r)
-        .castToI64()
-        .or_(Literal(int64_t(0x8000000000000LL)))
-        .castToF64();
+      return Literal(std::min(l, r));
     }
     default:
       WASM_UNREACHABLE("unexpected type");
@@ -1423,39 +1507,29 @@ Literal Literal::max(const Literal& other) const {
   switch (type.getBasic()) {
     case Type::f32: {
       auto l = getf32(), r = other.getf32();
+      if (std::isnan(l)) {
+        return standardizeNaN(l);
+      }
+      if (std::isnan(r)) {
+        return standardizeNaN(r);
+      }
       if (l == r && l == 0) {
         return Literal(std::signbit(l) ? r : l);
       }
-      auto result = std::max(l, r);
-      bool lnan = std::isnan(l), rnan = std::isnan(r);
-      if (!std::isnan(result) && !lnan && !rnan) {
-        return Literal(result);
-      }
-      if (!lnan && !rnan) {
-        return Literal((int32_t)0x7fc00000).castToF32();
-      }
-      return Literal(lnan ? l : r)
-        .castToI32()
-        .or_(Literal(0xc00000))
-        .castToF32();
+      return Literal(std::max(l, r));
     }
     case Type::f64: {
       auto l = getf64(), r = other.getf64();
+      if (std::isnan(l)) {
+        return standardizeNaN(l);
+      }
+      if (std::isnan(r)) {
+        return standardizeNaN(r);
+      }
       if (l == r && l == 0) {
         return Literal(std::signbit(l) ? r : l);
       }
-      auto result = std::max(l, r);
-      bool lnan = std::isnan(l), rnan = std::isnan(r);
-      if (!std::isnan(result) && !lnan && !rnan) {
-        return Literal(result);
-      }
-      if (!lnan && !rnan) {
-        return Literal((int64_t)0x7ff8000000000000LL).castToF64();
-      }
-      return Literal(lnan ? l : r)
-        .castToI64()
-        .or_(Literal(int64_t(0x8000000000000LL)))
-        .castToF64();
+      return Literal(std::max(l, r));
     }
     default:
       WASM_UNREACHABLE("unexpected type");
@@ -1558,7 +1632,8 @@ Literal Literal::shuffleV8x16(const Literal& other,
   return Literal(bytes);
 }
 
-template<Type::BasicID Ty, int Lanes> static Literal splat(const Literal& val) {
+template<Type::BasicType Ty, int Lanes>
+static Literal splat(const Literal& val) {
   assert(val.type == Ty);
   LaneArray<Lanes> lanes;
   lanes.fill(val);
@@ -1652,6 +1727,9 @@ Literal Literal::absI32x4() const {
 }
 Literal Literal::negI8x16() const {
   return unary<16, &Literal::getLanesUI8x16, &Literal::neg>(*this);
+}
+Literal Literal::popcntI8x16() const {
+  return unary<16, &Literal::getLanesUI8x16, &Literal::popCount>(*this);
 }
 Literal Literal::negI16x8() const {
   return unary<8, &Literal::getLanesUI16x8, &Literal::neg>(*this);
@@ -1789,12 +1867,6 @@ Literal Literal::allTrueI32x4() const {
 }
 Literal Literal::bitmaskI32x4() const {
   return bitmask<4, &Literal::getLanesI32x4>(*this);
-}
-Literal Literal::anyTrueI64x2() const {
-  return any_true<2, &Literal::getLanesI64x2>(*this);
-}
-Literal Literal::allTrueI64x2() const {
-  return all_true<2, &Literal::getLanesI64x2>(*this);
 }
 
 template<int Lanes,
@@ -1953,6 +2025,10 @@ Literal Literal::geSI32x4(const Literal& other) const {
 Literal Literal::geUI32x4(const Literal& other) const {
   return compare<4, &Literal::getLanesI32x4, &Literal::geU>(*this, other);
 }
+Literal Literal::eqI64x2(const Literal& other) const {
+  return compare<2, &Literal::getLanesI64x2, &Literal::eq, int64_t>(*this,
+                                                                    other);
+}
 Literal Literal::eqF32x4(const Literal& other) const {
   return compare<4, &Literal::getLanesF32x4, &Literal::eq>(*this, other);
 }
@@ -2096,6 +2172,9 @@ Literal Literal::maxUI16x8(const Literal& other) const {
 }
 Literal Literal::avgrUI16x8(const Literal& other) const {
   return binary<8, &Literal::getLanesUI16x8, &Literal::avgrUInt>(*this, other);
+}
+Literal Literal::q15MulrSatSI16x8(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement Q15 rounding, saturating multiplication");
 }
 Literal Literal::addI32x4(const Literal& other) const {
   return binary<4, &Literal::getLanesI32x4, &Literal::add>(*this, other);
@@ -2274,6 +2353,43 @@ Literal Literal::widenHighUToVecI32x4() const {
   return widen<4, &Literal::getLanesUI16x8, LaneOrder::High>(*this);
 }
 
+Literal Literal::extMulLowSI16x8(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulHighSI16x8(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulLowUI16x8(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulHighUI16x8(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulLowSI32x4(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulHighSI32x4(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulLowUI32x4(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulHighUI32x4(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulLowSI64x2(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulHighSI64x2(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulLowUI64x2(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+Literal Literal::extMulHighUI64x2(const Literal& other) const {
+  WASM_UNREACHABLE("TODO: implement SIMD extending multiplications");
+}
+
 Literal Literal::swizzleVec8x16(const Literal& other) const {
   auto lanes = getLanesUI8x16();
   auto indices = other.getLanesUI8x16();
@@ -2283,6 +2399,33 @@ Literal Literal::swizzleVec8x16(const Literal& other) const {
     result[i] = index >= 16 ? Literal(int32_t(0)) : lanes[index];
   }
   return Literal(result);
+}
+
+bool Literal::isSubRtt(const Literal& other) const {
+  assert(type.isRtt() && other.type.isRtt());
+  // For this literal to be a sub-rtt of the other rtt, the supers must be a
+  // superset. That is, if other is a->b->c then we should be a->b->c as well
+  // with possibly ->d->.. added. The rttSupers array represents those chains,
+  // but only the supers, which means the last item in the chain is simply the
+  // type of the literal.
+  const auto& supers = getRttSupers();
+  const auto& otherSupers = other.getRttSupers();
+  if (otherSupers.size() > supers.size()) {
+    return false;
+  }
+  for (Index i = 0; i < otherSupers.size(); i++) {
+    if (supers[i] != otherSupers[i]) {
+      return false;
+    }
+  }
+  // If we have more supers than other, compare that extra super. Otherwise,
+  // we have the same amount of supers, and must be completely identical to
+  // other.
+  if (otherSupers.size() < supers.size()) {
+    return other.type == supers[otherSupers.size()];
+  } else {
+    return other.type == type;
+  }
 }
 
 } // namespace wasm

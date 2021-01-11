@@ -31,10 +31,6 @@
 #include "wasm-traversal.h"
 #include "wasm.h"
 
-#ifdef RERELOOP_DEBUG
-#include <wasm-printing.h>
-#endif
-
 namespace wasm {
 
 struct ReReloop final : public Pass {
@@ -362,7 +358,7 @@ struct ReReloop final : public Pass {
       }
     }
     // TODO: should this be in the relooper itself?
-    ReFinalize().walk(function->body);
+    ReFinalize().walkFunctionInModule(function, module);
   }
 };
 

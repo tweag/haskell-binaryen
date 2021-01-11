@@ -1,26 +1,36 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 -- | Modules.
 --
 -- See <https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h>
 -- for API documentation.
 --
 -- This module is intended to be imported qualified.
-
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module Binaryen.Module where
 
-import Binaryen.Index
 import Binaryen.Event
 import Binaryen.Export
 import Binaryen.Expression
 import Binaryen.Features
 import Binaryen.Function
 import Binaryen.Global
+import Binaryen.Index
 import Binaryen.Type
 import Data.Int (Int8)
-import Data.Word (Word8, Word32)
-import Foreign (Ptr, Storable)
-import Foreign.C (CChar(..), CInt(..), CSize(..), CUIntPtr(..))
+import Data.Word
+  ( Word32,
+    Word8,
+  )
+import Foreign
+  ( Ptr,
+    Storable,
+  )
+import Foreign.C
+  ( CChar (..),
+    CInt (..),
+    CSize (..),
+    CUIntPtr (..),
+  )
 
 newtype Module = Module (Ptr Module)
   deriving (Eq, Show, Storable)
@@ -54,7 +64,7 @@ foreign import ccall unsafe "BinaryenRemoveFunction"
 
 foreign import ccall unsafe "BinaryenGetNumFunctions"
   getNumFunctions ::
-    Module -> IO Word32
+    Module -> IO Index
 
 foreign import ccall unsafe "BinaryenGetFunctionByIndex"
   getFunctionByIndex ::
@@ -258,7 +268,7 @@ foreign import ccall unsafe "BinaryenAddCustomSection"
 
 foreign import ccall unsafe "BinaryenGetNumExports"
   getNumExports ::
-    Module -> IO Word32
+    Module -> IO Index
 
 foreign import ccall unsafe "BinaryenGetExportByIndex"
   getExportByIndex ::

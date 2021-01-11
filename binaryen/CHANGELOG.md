@@ -15,6 +15,21 @@ full changeset diff at the end of each section.
 Current Trunk
 -------------
 
+- `RefFunc` C and JS API constructors (`BinaryenRefFunc` and `ref.func`
+  respectively) now take an extra `type` parameter, similar to `RefNull`. This
+  is necessary for typed function references support.
+- JS API functions for atomic notify/wait instructions are renamed.
+  - `module.atomic.notify` -> `module.memory.atomic.notify`
+  - `module.i32.atomic.wait` -> `module.memory.atomic.wait32`
+  - `module.i64.atomic.wait` -> `module.memory.atomic.wait64`
+- Remove old/broken SpollPointers pass.  This pass: Spills values that might be
+  pointers to the C stack. This allows Boehm-style GC to see them properly.
+  This can be revived if needed from git history (#3261).
+- Make `NUM_PARAMS` in `FuncCastEmulation` a runtime configuration option named
+  `max-func-params`. This defaults to the original value of 16.
+- `BinaryenGetFunction`, `BinaryenGetGlobal` and `BinaryenGetEvent` now return
+  `NULL` instead of aborting when the respective element does not yet exist.
+
 v98
 ---
 

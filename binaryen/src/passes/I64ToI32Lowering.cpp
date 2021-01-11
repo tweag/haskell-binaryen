@@ -22,7 +22,6 @@
 //
 
 #include "abi/js.h"
-#include "asmjs/shared-constants.h"
 #include "emscripten-optimizer/istring.h"
 #include "ir/flat.h"
 #include "ir/iteration.h"
@@ -114,11 +113,10 @@ struct I64ToI32Lowering : public WalkerPass<PostWalker<I64ToI32Lowering>> {
       }
       originallyI64Globals.insert(curr->name);
       curr->type = Type::i32;
-      auto* high = builder->makeGlobal(makeHighName(curr->name),
-                                       Type::i32,
-                                       builder->makeConst(int32_t(0)),
-                                       Builder::Mutable);
-      module->addGlobal(high);
+      auto high = builder->makeGlobal(makeHighName(curr->name),
+                                      Type::i32,
+                                      builder->makeConst(int32_t(0)),
+                                      Builder::Mutable);
       if (curr->imported()) {
         Fatal() << "TODO: imported i64 globals";
       } else {
@@ -135,6 +133,7 @@ struct I64ToI32Lowering : public WalkerPass<PostWalker<I64ToI32Lowering>> {
         }
         curr->init->type = Type::i32;
       }
+      module->addGlobal(std::move(high));
     }
 
     // For functions that return 64-bit values, we use this global variable
@@ -219,6 +218,9 @@ struct I64ToI32Lowering : public WalkerPass<PostWalker<I64ToI32Lowering>> {
   // returns nullptr;
   template<typename T>
   T* visitGenericCall(T* curr, BuilderFunc<T> callBuilder) {
+    if (handleUnreachable(curr)) {
+      return nullptr;
+    }
     bool fixed = false;
     std::vector<Expression*> args;
     for (auto* e : curr->operands) {

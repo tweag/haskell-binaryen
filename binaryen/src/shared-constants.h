@@ -39,9 +39,12 @@ extern Name PASSIVE;
 extern Name EXPORT;
 extern Name IMPORT;
 extern Name TABLE;
+extern Name GLOBAL;
 extern Name ELEM;
 extern Name LOCAL;
 extern Name TYPE;
+extern Name REF;
+extern Name NULL_;
 extern Name CALL;
 extern Name CALL_IMPORT;
 extern Name CALL_INDIRECT;
@@ -64,7 +67,6 @@ extern Name EXIT;
 extern Name SHARED;
 extern Name EVENT;
 extern Name ATTR;
-extern Name ASSIGN_GOT_ENTRIES;
 
 } // namespace wasm
 

@@ -4,10 +4,10 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dd229f4cad11bdebeaef89df68685de75858bc5d1ec3d969f606f0519e5e34b8
+-- hash: 15122c50a2315bce9fd4a209364778dc7a50ec2775a053a7501cd0a59659de50
 
 name:           binaryen
-version:        0.0.5.0
+version:        0.0.6.0
 synopsis:       Haskell bindings to binaryen
 description:    Haskell bindings to [binaryen](https://github.com/WebAssembly/binaryen). Provides complete bindings to the C API, which can be useful for building WebAssembly toolchains in Haskell.
 category:       Compiler
@@ -28,10 +28,11 @@ extra-source-files:
     binaryen/LICENSE
     binaryen/media/example.png
     binaryen/README.md
+    binaryen/requirements-dev.txt
     binaryen/scripts/__init__.py
+    binaryen/scripts/binaryen-lit.in
     binaryen/scripts/clang-format-diff.sh
     binaryen/scripts/clang-tidy-diff.sh
-    binaryen/scripts/clean_c_api_trace.py
     binaryen/scripts/embedwat.py
     binaryen/scripts/emcc-tests.sh
     binaryen/scripts/fuzz_opt.py
@@ -40,7 +41,7 @@ extra-source-files:
     binaryen/scripts/fuzz_relooper.py
     binaryen/scripts/fuzz_shell.js
     binaryen/scripts/gen-s-parser.py
-    binaryen/scripts/process_optimize_instructions.py
+    binaryen/scripts/not.py
     binaryen/scripts/storage.py
     binaryen/scripts/strip_local_names.py
     binaryen/scripts/test/__init__.py
@@ -57,10 +58,7 @@ extra-source-files:
     binaryen/scripts/test/wasm_opt.py
     binaryen/scripts/validation_shell.js
     binaryen/scripts/wasm2js.js
-    binaryen/src/abi/abi.h
     binaryen/src/abi/js.h
-    binaryen/src/abi/stack.h
-    binaryen/src/abi/wasm-object.h
     binaryen/src/asm_v_wasm.h
     binaryen/src/asmjs/asm_v_wasm.cpp
     binaryen/src/asmjs/asmangle.cpp
@@ -120,6 +118,8 @@ extra-source-files:
     binaryen/src/ir/manipulation.h
     binaryen/src/ir/match.h
     binaryen/src/ir/memory-utils.h
+    binaryen/src/ir/module-splitting.cpp
+    binaryen/src/ir/module-splitting.h
     binaryen/src/ir/module-utils.h
     binaryen/src/ir/names.h
     binaryen/src/ir/parents.h
@@ -155,7 +155,6 @@ extra-source-files:
     binaryen/src/passes/DuplicateFunctionElimination.cpp
     binaryen/src/passes/DuplicateImportElimination.cpp
     binaryen/src/passes/DWARF.cpp
-    binaryen/src/passes/EmscriptenPIC.cpp
     binaryen/src/passes/ExtractFunction.cpp
     binaryen/src/passes/Flatten.cpp
     binaryen/src/passes/FuncCastEmulation.cpp
@@ -170,6 +169,7 @@ extra-source-files:
     binaryen/src/passes/LocalCSE.cpp
     binaryen/src/passes/LogExecution.cpp
     binaryen/src/passes/LoopInvariantCodeMotion.cpp
+    binaryen/src/passes/Memory64Lowering.cpp
     binaryen/src/passes/MemoryPacking.cpp
     binaryen/src/passes/MergeBlocks.cpp
     binaryen/src/passes/MergeLocals.cpp
@@ -199,14 +199,12 @@ extra-source-files:
     binaryen/src/passes/RemoveUnusedNames.cpp
     binaryen/src/passes/ReorderFunctions.cpp
     binaryen/src/passes/ReorderLocals.cpp
-    binaryen/src/passes/ReplaceStackPointer.cpp
     binaryen/src/passes/ReReloop.cpp
     binaryen/src/passes/RoundTrip.cpp
     binaryen/src/passes/SafeHeap.cpp
     binaryen/src/passes/SimplifyGlobals.cpp
     binaryen/src/passes/SimplifyLocals.cpp
     binaryen/src/passes/Souperify.cpp
-    binaryen/src/passes/SpillPointers.cpp
     binaryen/src/passes/SSAify.cpp
     binaryen/src/passes/StackCheck.cpp
     binaryen/src/passes/StackIR.cpp
@@ -246,6 +244,7 @@ extra-source-files:
     binaryen/src/support/safe_integer.h
     binaryen/src/support/small_vector.h
     binaryen/src/support/sorted_vector.h
+    binaryen/src/support/space.h
     binaryen/src/support/string.h
     binaryen/src/support/threads.cpp
     binaryen/src/support/threads.h
@@ -270,17 +269,19 @@ extra-source-files:
     binaryen/src/tools/wasm-opt.cpp
     binaryen/src/tools/wasm-reduce.cpp
     binaryen/src/tools/wasm-shell.cpp
+    binaryen/src/tools/wasm-split.cpp
     binaryen/src/tools/wasm2c-wrapper.h
     binaryen/src/tools/wasm2js.cpp
     binaryen/src/wasm-binary.h
     binaryen/src/wasm-builder.h
     binaryen/src/wasm-debug.h
+    binaryen/src/wasm-delegations-fields.h
+    binaryen/src/wasm-delegations.h
     binaryen/src/wasm-emscripten.h
     binaryen/src/wasm-features.h
     binaryen/src/wasm-interpreter.h
     binaryen/src/wasm-io.h
     binaryen/src/wasm-module-building.h
-    binaryen/src/wasm-printing.h
     binaryen/src/wasm-s-parser.h
     binaryen/src/wasm-stack.h
     binaryen/src/wasm-traversal.h
@@ -313,7 +314,6 @@ extra-source-files:
     binaryen/test/atomics64.wast.from-wast
     binaryen/test/atomics64.wast.fromBinary
     binaryen/test/atomics64.wast.fromBinary.noDebugInfo
-    binaryen/test/bad_params.asm.js
     binaryen/test/bigswitch.cpp
     binaryen/test/bigswitch.txt
     binaryen/test/binaryen.js/atomics.js
@@ -446,7 +446,6 @@ extra-source-files:
     binaryen/test/ctor-eval/unsafe_store3.wast
     binaryen/test/ctor-eval/unsafe_store3.wast.ctors
     binaryen/test/ctor-eval/unsafe_store3.wast.out
-    binaryen/test/debugInfo.asm.js
     binaryen/test/duplicate_types.wast
     binaryen/test/duplicate_types.wast.from-wast
     binaryen/test/duplicate_types.wast.fromBinary
@@ -457,13 +456,8 @@ extra-source-files:
     binaryen/test/duplicated_names_collision.wasm.fromBinary
     binaryen/test/dylib.wasm
     binaryen/test/dylib.wasm.fromBinary
-    binaryen/test/dynamicLibrary.asm.js
     binaryen/test/elided-br.wasm
     binaryen/test/elided-br.wasm.fromBinary
-    binaryen/test/emcc_hello_world.asm.js
-    binaryen/test/emcc_O2_hello_world.asm.js
-    binaryen/test/empty.asm.js
-    binaryen/test/empty_4GB.asm.js
     binaryen/test/empty_imported_table.wast
     binaryen/test/empty_imported_table.wast.from-wast
     binaryen/test/empty_imported_table.wast.fromBinary
@@ -480,7 +474,6 @@ extra-source-files:
     binaryen/test/example/c-api-hello-world.txt
     binaryen/test/example/c-api-kitchen-sink.c
     binaryen/test/example/c-api-kitchen-sink.txt
-    binaryen/test/example/c-api-kitchen-sink.txt.txt
     binaryen/test/example/c-api-relooper-unreachable-if.cpp
     binaryen/test/example/c-api-relooper-unreachable-if.txt
     binaryen/test/example/c-api-unused-mem.cpp
@@ -489,8 +482,12 @@ extra-source-files:
     binaryen/test/example/cpp-threads.txt
     binaryen/test/example/cpp-unit.cpp
     binaryen/test/example/cpp-unit.txt
+    binaryen/test/example/hash.cpp
+    binaryen/test/example/hash.txt
     binaryen/test/example/match.cpp
     binaryen/test/example/match.txt
+    binaryen/test/example/module-splitting.cpp
+    binaryen/test/example/module-splitting.txt
     binaryen/test/example/relooper-fuzz.c
     binaryen/test/example/relooper-fuzz.txt
     binaryen/test/example/relooper-fuzz1.c
@@ -513,8 +510,12 @@ extra-source-files:
     binaryen/test/example/relooper-merge7.txt
     binaryen/test/example/small_vector.cpp
     binaryen/test/example/small_vector.txt
+    binaryen/test/example/space.cpp
+    binaryen/test/example/space.txt
     binaryen/test/example/stack-utils.cpp
     binaryen/test/example/stack-utils.txt
+    binaryen/test/example/type-builder.cpp
+    binaryen/test/example/type-builder.txt
     binaryen/test/example/typeinfo.cpp
     binaryen/test/example/typeinfo.txt
     binaryen/test/exception-handling.wast
@@ -525,6 +526,10 @@ extra-source-files:
     binaryen/test/export-import.wast.from-wast
     binaryen/test/export-import.wast.fromBinary
     binaryen/test/export-import.wast.fromBinary.noDebugInfo
+    binaryen/test/extended-names.wast
+    binaryen/test/extended-names.wast.from-wast
+    binaryen/test/extended-names.wast.fromBinary
+    binaryen/test/extended-names.wast.fromBinary.noDebugInfo
     binaryen/test/externref.wast.from-wast
     binaryen/test/externref.wast.fromBinary
     binaryen/test/externref.wast.fromBinary.noDebugInfo
@@ -563,16 +568,18 @@ extra-source-files:
     binaryen/test/grow_memory.wast.from-wast
     binaryen/test/grow_memory.wast.fromBinary
     binaryen/test/grow_memory.wast.fromBinary.noDebugInfo
+    binaryen/test/heap-types.wast
+    binaryen/test/heap-types.wast.from-wast
+    binaryen/test/heap-types.wast.fromBinary
+    binaryen/test/heap-types.wast.fromBinary.noDebugInfo
     binaryen/test/hello_libcxx.cpp
     binaryen/test/hello_libcxx.txt
-    binaryen/test/hello_world.asm.js
     binaryen/test/hello_world.c
     binaryen/test/hello_world.txt
     binaryen/test/hello_world.wast.from-wast
     binaryen/test/hello_world.wast.fromBinary
     binaryen/test/hello_world.wast.fromBinary.noDebugInfo
     binaryen/test/hello_world.wat
-    binaryen/test/i64-setTempRet0.asm.js
     binaryen/test/imported_memory.wast
     binaryen/test/imported_memory.wast.from-wast
     binaryen/test/imported_memory.wast.fromBinary
@@ -581,7 +588,6 @@ extra-source-files:
     binaryen/test/imported_memory_growth.wast.from-wast
     binaryen/test/imported_memory_growth.wast.fromBinary
     binaryen/test/imported_memory_growth.wast.fromBinary.noDebugInfo
-    binaryen/test/importedSignCast.asm.js
     binaryen/test/int_ops.c
     binaryen/test/int_ops.emcc
     binaryen/test/int_ops.post.js
@@ -597,11 +603,27 @@ extra-source-files:
     binaryen/test/linker/foo.c
     binaryen/test/linker/main.c
     binaryen/test/linker/quux.c
+    binaryen/test/lit/CMakeLists.txt
+    binaryen/test/lit/lit.cfg.py
+    binaryen/test/lit/lit.site.cfg.py.in
+    binaryen/test/lit/parse-error.wast
+    binaryen/test/lit/validation/shared-memory.wast
+    binaryen/test/lit/wasm-emscripten-finalize/bigint.wat
+    binaryen/test/lit/wasm-emscripten-finalize/passive-pic.wat
+    binaryen/test/lit/wasm-split/basic.wast
+    binaryen/test/lit/wasm-split/call_exports.mjs
+    binaryen/test/lit/wasm-split/export-name-already-exists.wast
+    binaryen/test/lit/wasm-split/initial-table.wast
+    binaryen/test/lit/wasm-split/instrument-funcs.wast
+    binaryen/test/lit/wasm-split/instrument-memory-too-small.wast
+    binaryen/test/lit/wasm-split/invalid-options.wast
+    binaryen/test/lit/wasm-split/mismatched-hashes.wast
+    binaryen/test/lit/wasm-split/name-collision.wast
+    binaryen/test/lit/wasm-split/profile-guided.wast
+    binaryen/test/lit/wasm-split/verbose.wast
     binaryen/test/lld/basic_safe_stack.s
     binaryen/test/lld/basic_safe_stack.wat
     binaryen/test/lld/basic_safe_stack.wat.out
-    binaryen/test/lld/bigint.wat
-    binaryen/test/lld/bigint.wat.out
     binaryen/test/lld/duplicate_imports.wat
     binaryen/test/lld/duplicate_imports.wat.out
     binaryen/test/lld/em_asm.cpp
@@ -609,6 +631,9 @@ extra-source-files:
     binaryen/test/lld/em_asm.wat.mem.mem
     binaryen/test/lld/em_asm.wat.mem.out
     binaryen/test/lld/em_asm.wat.out
+    binaryen/test/lld/em_asm64.cpp
+    binaryen/test/lld/em_asm64.wat
+    binaryen/test/lld/em_asm64.wat.out
     binaryen/test/lld/em_asm_main_thread.wat
     binaryen/test/lld/em_asm_main_thread.wat.out
     binaryen/test/lld/em_asm_O0.c
@@ -621,8 +646,6 @@ extra-source-files:
     binaryen/test/lld/em_asm_table.wat.out
     binaryen/test/lld/em_js_O0.wat
     binaryen/test/lld/em_js_O0.wat.out
-    binaryen/test/lld/gdollar_mainmodule.wat
-    binaryen/test/lld/gdollar_mainmodule.wat.out
     binaryen/test/lld/hello_world.c
     binaryen/test/lld/hello_world.passive.wat
     binaryen/test/lld/hello_world.passive.wat.out
@@ -691,8 +714,6 @@ extra-source-files:
     binaryen/test/memory-shared.wast.from-wast
     binaryen/test/memory-shared.wast.fromBinary
     binaryen/test/memory-shared.wast.fromBinary.noDebugInfo
-    binaryen/test/memorygrowth-minimal.asm.js
-    binaryen/test/memorygrowth.asm.js
     binaryen/test/metadatas.wasm
     binaryen/test/metadatas.wasm.fromBinary
     binaryen/test/metadce/all-outside.wast
@@ -739,7 +760,6 @@ extra-source-files:
     binaryen/test/metadce/threaded_unrooted_cycle.wast.dced
     binaryen/test/metadce/threaded_unrooted_cycle.wast.dced.stdout
     binaryen/test/metadce/threaded_unrooted_cycle.wast.graph.txt
-    binaryen/test/min.asm.js
     binaryen/test/min.wast
     binaryen/test/min.wast.from-wast
     binaryen/test/min.wast.fromBinary
@@ -758,8 +778,6 @@ extra-source-files:
     binaryen/test/newsyntax.wast.from-wast
     binaryen/test/newsyntax.wast.fromBinary
     binaryen/test/newsyntax.wast.fromBinary.noDebugInfo
-    binaryen/test/noffi_f32.asm.js
-    binaryen/test/noffi_i64.asm.js
     binaryen/test/nonspec-bulk-memory.wast
     binaryen/test/nonspec-bulk-memory.wast.from-wast
     binaryen/test/nonspec-bulk-memory.wast.fromBinary
@@ -825,14 +843,14 @@ extra-source-files:
     binaryen/test/passes/converge_O3_metrics.wasm
     binaryen/test/passes/dae-optimizing.txt
     binaryen/test/passes/dae-optimizing.wast
-    binaryen/test/passes/dae_enable-tail-call.txt
-    binaryen/test/passes/dae_enable-tail-call.wast
+    binaryen/test/passes/dae_all-features.txt
+    binaryen/test/passes/dae_all-features.wast
     binaryen/test/passes/dce_all-features.txt
     binaryen/test/passes/dce_all-features.wast
-    binaryen/test/passes/dce_vacuum.bin.txt
-    binaryen/test/passes/dce_vacuum.txt
-    binaryen/test/passes/dce_vacuum.wasm
-    binaryen/test/passes/dce_vacuum.wast
+    binaryen/test/passes/dce_vacuum_remove-unused-names.bin.txt
+    binaryen/test/passes/dce_vacuum_remove-unused-names.txt
+    binaryen/test/passes/dce_vacuum_remove-unused-names.wasm
+    binaryen/test/passes/dce_vacuum_remove-unused-names.wast
     binaryen/test/passes/dealign.txt
     binaryen/test/passes/dealign.wast
     binaryen/test/passes/dealign64.passes
@@ -840,8 +858,8 @@ extra-source-files:
     binaryen/test/passes/dealign64.wast
     binaryen/test/passes/denan.txt
     binaryen/test/passes/denan.wast
-    binaryen/test/passes/directize_enable-tail-call.txt
-    binaryen/test/passes/directize_enable-tail-call.wast
+    binaryen/test/passes/directize_all-features.txt
+    binaryen/test/passes/directize_all-features.wast
     binaryen/test/passes/duplicate-function-elimination_all-features.txt
     binaryen/test/passes/duplicate-function-elimination_all-features.wast
     binaryen/test/passes/duplicate-function-elimination_optimize-level=1.txt
@@ -908,6 +926,8 @@ extra-source-files:
     binaryen/test/passes/flatten_simplify-locals-nonesting_souperify_enable-threads.wast
     binaryen/test/passes/fpcast-emu.txt
     binaryen/test/passes/fpcast-emu.wast
+    binaryen/test/passes/fpcast-emu_pass-arg=max-func-params@5.txt
+    binaryen/test/passes/fpcast-emu_pass-arg=max-func-params@5.wast
     binaryen/test/passes/func-metrics.txt
     binaryen/test/passes/func-metrics.wast
     binaryen/test/passes/fuzz-exec_all-features.txt
@@ -943,8 +963,8 @@ extra-source-files:
     binaryen/test/passes/inlining_enable-tail-call.wast
     binaryen/test/passes/inlining_optimize-level=3.txt
     binaryen/test/passes/inlining_optimize-level=3.wast
-    binaryen/test/passes/instrument-locals_all-features.txt
-    binaryen/test/passes/instrument-locals_all-features.wast
+    binaryen/test/passes/instrument-locals_all-features_disable-typed-function-references.txt
+    binaryen/test/passes/instrument-locals_all-features_disable-typed-function-references.wast
     binaryen/test/passes/instrument-memory.txt
     binaryen/test/passes/instrument-memory.wast
     binaryen/test/passes/instrument-memory64.passes
@@ -967,6 +987,10 @@ extra-source-files:
     binaryen/test/passes/log-execution.wast
     binaryen/test/passes/memory-packing_all-features.txt
     binaryen/test/passes/memory-packing_all-features.wast
+    binaryen/test/passes/memory-packing_all-features_zero-filled-memory.txt
+    binaryen/test/passes/memory-packing_all-features_zero-filled-memory.wast
+    binaryen/test/passes/memory64-lowering_enable-memory64_enable-bulk-memory.txt
+    binaryen/test/passes/memory64-lowering_enable-memory64_enable-bulk-memory.wast
     binaryen/test/passes/merge-blocks.txt
     binaryen/test/passes/merge-blocks.wast
     binaryen/test/passes/merge-blocks_remove-unused-brs.txt
@@ -1017,6 +1041,10 @@ extra-source-files:
     binaryen/test/passes/O3_print-stack-ir.wast
     binaryen/test/passes/O4_disable-bulk-memory.txt
     binaryen/test/passes/O4_disable-bulk-memory.wast
+    binaryen/test/passes/O_all-features.txt
+    binaryen/test/passes/O_all-features.wast
+    binaryen/test/passes/O_all-features_ignore-implicit-traps.txt
+    binaryen/test/passes/O_all-features_ignore-implicit-traps.wast
     binaryen/test/passes/O_fast-math.txt
     binaryen/test/passes/O_fast-math.wast
     binaryen/test/passes/optimize-added-constants-propagate_low-memory-unused.txt
@@ -1025,14 +1053,20 @@ extra-source-files:
     binaryen/test/passes/optimize-added-constants_low-memory-unused.wast
     binaryen/test/passes/optimize-instructions_all-features.txt
     binaryen/test/passes/optimize-instructions_all-features.wast
+    binaryen/test/passes/optimize-instructions_fuzz-exec.txt
+    binaryen/test/passes/optimize-instructions_fuzz-exec.wast
     binaryen/test/passes/optimize-instructions_optimize-level=2_all-features_ignore-implicit-traps.txt
     binaryen/test/passes/optimize-instructions_optimize-level=2_all-features_ignore-implicit-traps.wast
     binaryen/test/passes/Os_print-stack-ir_all-features.txt
     binaryen/test/passes/Os_print-stack-ir_all-features.wast
     binaryen/test/passes/Oz.txt
     binaryen/test/passes/Oz.wast
+    binaryen/test/passes/Oz_fuzz-exec_all-features.txt
+    binaryen/test/passes/Oz_fuzz-exec_all-features.wast
     binaryen/test/passes/pick-load-signs.txt
     binaryen/test/passes/pick-load-signs.wast
+    binaryen/test/passes/pick-load-signs_all-features.txt
+    binaryen/test/passes/pick-load-signs_all-features.wast
     binaryen/test/passes/post-assemblyscript-finalize.txt
     binaryen/test/passes/post-assemblyscript-finalize.wast
     binaryen/test/passes/post-assemblyscript.txt
@@ -1102,6 +1136,9 @@ extra-source-files:
     binaryen/test/passes/reverse_dwarf_abbrevs.wasm
     binaryen/test/passes/roundtrip.txt
     binaryen/test/passes/roundtrip.wast
+    binaryen/test/passes/roundtrip_signed.bin.txt
+    binaryen/test/passes/roundtrip_signed.passes
+    binaryen/test/passes/roundtrip_signed.wasm
     binaryen/test/passes/rse_all-features.txt
     binaryen/test/passes/rse_all-features.wast
     binaryen/test/passes/safe-heap_disable-simd.txt
@@ -1113,10 +1150,15 @@ extra-source-files:
     binaryen/test/passes/safe-heap_enable-threads_enable-simd64.wast
     binaryen/test/passes/safe-heap_low-memory-unused_enable-threads_enable-simd.txt
     binaryen/test/passes/safe-heap_low-memory-unused_enable-threads_enable-simd.wast
+    binaryen/test/passes/safe-heap_start-function.passes
+    binaryen/test/passes/safe-heap_start-function.txt
+    binaryen/test/passes/safe-heap_start-function.wast
     binaryen/test/passes/simplify-globals-optimizing_enable-mutable-globals.txt
     binaryen/test/passes/simplify-globals-optimizing_enable-mutable-globals.wast
     binaryen/test/passes/simplify-globals_all-features.txt
     binaryen/test/passes/simplify-globals_all-features.wast
+    binaryen/test/passes/simplify-globals_all-features_fuzz-exec.txt
+    binaryen/test/passes/simplify-globals_all-features_fuzz-exec.wast
     binaryen/test/passes/simplify-locals-nonesting.txt
     binaryen/test/passes/simplify-locals-nonesting.wast
     binaryen/test/passes/simplify-locals-nostructure.txt
@@ -1133,8 +1175,6 @@ extra-source-files:
     binaryen/test/passes/simplify-locals_all-features_disable-exception-handling.wast
     binaryen/test/passes/souperify.txt
     binaryen/test/passes/souperify.wast
-    binaryen/test/passes/spill-pointers.txt
-    binaryen/test/passes/spill-pointers.wast
     binaryen/test/passes/ssa-nomerge_enable-simd.txt
     binaryen/test/passes/ssa-nomerge_enable-simd.wast
     binaryen/test/passes/ssa_enable-threads.txt
@@ -1159,7 +1199,8 @@ extra-source-files:
     binaryen/test/passes/too_much_for_liveness.passes
     binaryen/test/passes/too_much_for_liveness.wasm
     binaryen/test/passes/translate-to-fuzz_all-features.txt
-    binaryen/test/passes/translate-to-fuzz_all-features.wast
+    binaryen/test/passes/translate-to-fuzz_all-features_metrics_noprint.txt
+    binaryen/test/passes/translate-to-fuzz_all-features_metrics_noprint.wast
     binaryen/test/passes/trap-mode-clamp.txt
     binaryen/test/passes/trap-mode-clamp.wast
     binaryen/test/passes/trap-mode-js.txt
@@ -1389,12 +1430,10 @@ extra-source-files:
     binaryen/test/tail-call.wast.from-wast
     binaryen/test/tail-call.wast.fromBinary
     binaryen/test/tail-call.wast.fromBinary.noDebugInfo
-    binaryen/test/threads.asm.js
-    binaryen/test/threads.wasm-only.asm.js
-    binaryen/test/try-body-multiple-insts.wasm
-    binaryen/test/try-body-multiple-insts.wasm.fromBinary
-    binaryen/test/two_sides.asm.js
-    binaryen/test/unit.asm.js
+    binaryen/test/typed-function-references.wast
+    binaryen/test/typed-function-references.wast.from-wast
+    binaryen/test/typed-function-references.wast.fromBinary
+    binaryen/test/typed-function-references.wast.fromBinary.noDebugInfo
     binaryen/test/unit.wast.from-wast
     binaryen/test/unit.wast.fromBinary
     binaryen/test/unit.wast.fromBinary.noDebugInfo
@@ -1417,7 +1456,9 @@ extra-source-files:
     binaryen/test/unit/input/empty_lld.wat
     binaryen/test/unit/input/exception_handling_target_feature.wasm
     binaryen/test/unit/input/gc_target_feature.wasm
+    binaryen/test/unit/input/hello_world.wat
     binaryen/test/unit/input/mutable_globals_target_feature.wasm
+    binaryen/test/unit/input/random_data.txt
     binaryen/test/unit/input/reference_types_target_feature.wasm
     binaryen/test/unit/input/signext_target_feature.wasm
     binaryen/test/unit/input/simd_target_feature.wasm
@@ -1428,9 +1469,9 @@ extra-source-files:
     binaryen/test/unit/test_asyncify.py
     binaryen/test/unit/test_datacount.py
     binaryen/test/unit/test_dwarf.py
-    binaryen/test/unit/test_errors.py
     binaryen/test/unit/test_features.py
     binaryen/test/unit/test_finalize.py
+    binaryen/test/unit/test_initial_fuzz.py
     binaryen/test/unit/test_memory_packing.py
     binaryen/test/unit/test_poppy_validation.py
     binaryen/test/unit/test_stack_ir.py
@@ -1442,7 +1483,6 @@ extra-source-files:
     binaryen/test/unreachable-code.wast.from-wast
     binaryen/test/unreachable-code.wast.fromBinary
     binaryen/test/unreachable-code.wast.fromBinary.noDebugInfo
-    binaryen/test/unreachable-import_wasm-only.asm.js
     binaryen/test/unreachable-instr-type.wast
     binaryen/test/unreachable-instr-type.wast.from-wast
     binaryen/test/unreachable-instr-type.wast.fromBinary
@@ -1453,12 +1493,10 @@ extra-source-files:
     binaryen/test/untaken-br_if.wast.from-wast
     binaryen/test/untaken-br_if.wast.fromBinary
     binaryen/test/untaken-br_if.wast.fromBinary.noDebugInfo
-    binaryen/test/use-import-and-drop.asm.js
     binaryen/test/validator/invalid_export.wast
     binaryen/test/validator/invalid_import.wast
     binaryen/test/validator/invalid_number.wast
     binaryen/test/validator/invalid_return.wast
-    binaryen/test/wasm-only.asm.js
     binaryen/test/wasm2asm.asserts.js
     binaryen/test/wasm2asm.traps.js
     binaryen/test/wasm2js.asserts.js
@@ -1990,6 +2028,7 @@ library libbinaryen
         binaryen/src/ir/ExpressionAnalyzer.cpp
         binaryen/src/ir/ExpressionManipulator.cpp
         binaryen/src/ir/LocalGraph.cpp
+        binaryen/src/ir/module-splitting.cpp
         binaryen/src/ir/ReFinalize.cpp
         binaryen/src/ir/stack-utils.cpp
         binaryen/src/passes/AlignmentLowering.cpp
@@ -2008,7 +2047,6 @@ library libbinaryen
         binaryen/src/passes/DuplicateFunctionElimination.cpp
         binaryen/src/passes/DuplicateImportElimination.cpp
         binaryen/src/passes/DWARF.cpp
-        binaryen/src/passes/EmscriptenPIC.cpp
         binaryen/src/passes/ExtractFunction.cpp
         binaryen/src/passes/Flatten.cpp
         binaryen/src/passes/FuncCastEmulation.cpp
@@ -2022,6 +2060,7 @@ library libbinaryen
         binaryen/src/passes/LocalCSE.cpp
         binaryen/src/passes/LogExecution.cpp
         binaryen/src/passes/LoopInvariantCodeMotion.cpp
+        binaryen/src/passes/Memory64Lowering.cpp
         binaryen/src/passes/MemoryPacking.cpp
         binaryen/src/passes/MergeBlocks.cpp
         binaryen/src/passes/MergeLocals.cpp
@@ -2049,14 +2088,12 @@ library libbinaryen
         binaryen/src/passes/RemoveUnusedNames.cpp
         binaryen/src/passes/ReorderFunctions.cpp
         binaryen/src/passes/ReorderLocals.cpp
-        binaryen/src/passes/ReplaceStackPointer.cpp
         binaryen/src/passes/ReReloop.cpp
         binaryen/src/passes/RoundTrip.cpp
         binaryen/src/passes/SafeHeap.cpp
         binaryen/src/passes/SimplifyGlobals.cpp
         binaryen/src/passes/SimplifyLocals.cpp
         binaryen/src/passes/Souperify.cpp
-        binaryen/src/passes/SpillPointers.cpp
         binaryen/src/passes/SSAify.cpp
         binaryen/src/passes/StackCheck.cpp
         binaryen/src/passes/StackIR.cpp
