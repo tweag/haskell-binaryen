@@ -49,14 +49,16 @@ def parse_args(args):
         help=('If set, the whole test suite will run to completion independent of'
               ' earlier errors.'))
     parser.add_argument(
-        '--interpreter', dest='interpreter', default='',
-        help='Specifies the wasm interpreter executable to run tests on.')
-    parser.add_argument(
         '--binaryen-bin', dest='binaryen_bin', default='',
-        help=('Specifies a path to where the built Binaryen executables reside at.'
-              ' Default: bin/ of current directory (i.e. assume an in-tree build).'
+        help=('Specifies the path to the Binaryen executables in the CMake build'
+              ' directory. Default: bin/ of current directory (i.e. assume an'
+              ' in-tree build).'
               ' If not specified, the environment variable BINARYEN_ROOT= can also'
               ' be used to adjust this.'))
+    parser.add_argument(
+        '--binaryen-lib', dest='binaryen_lib', default='',
+        help=('Specifies a path to where the built Binaryen shared library resides at.'
+              ' Default: ./lib relative to bin specified above.'))
     parser.add_argument(
         '--binaryen-root', dest='binaryen_root', default='',
         help=('Specifies a path to the root of the Binaryen repository tree.'
@@ -123,10 +125,17 @@ if not options.binaryen_bin:
 
 options.binaryen_bin = os.path.normpath(os.path.abspath(options.binaryen_bin))
 
+if not options.binaryen_lib:
+    options.binaryen_lib = os.path.join(os.path.dirname(options.binaryen_bin),  'lib')
+
+options.binaryen_lib = os.path.normpath(os.path.abspath(options.binaryen_lib))
+
+options.binaryen_build = os.path.dirname(options.binaryen_bin)
+
 # ensure BINARYEN_ROOT is set up
 os.environ['BINARYEN_ROOT'] = os.path.dirname(options.binaryen_bin)
 
-wasm_dis_filenames = ['wasm-dis', 'wasm-dis.exe']
+wasm_dis_filenames = ['wasm-dis', 'wasm-dis.exe', 'wasm-dis.js']
 if not any(os.path.isfile(os.path.join(options.binaryen_bin, f))
            for f in wasm_dis_filenames):
     warn('Binaryen not found (or has not been successfully built to bin/ ?')
@@ -182,7 +191,7 @@ NATIVECC = (os.environ.get('CC') or which('mingw32-gcc') or
             which('gcc') or which('clang'))
 NATIVEXX = (os.environ.get('CXX') or which('mingw32-g++') or
             which('g++') or which('clang++'))
-NODEJS = os.getenv('NODE', which('nodejs') or which('node'))
+NODEJS = os.getenv('NODE', which('node') or which('nodejs'))
 MOZJS = which('mozjs') or which('spidermonkey')
 V8 = which('v8') or which('d8')
 
@@ -260,17 +269,6 @@ except (OSError, subprocess.CalledProcessError):
     NODEJS = None
 if NODEJS is None:
     warn('no node found (did not check proper js form)')
-
-try:
-    if MOZJS is not None:
-        subprocess.check_call([MOZJS, '--version'],
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-except (OSError, subprocess.CalledProcessError):
-    MOZJS = None
-if MOZJS is None:
-    warn('no mozjs found (did not check native wasm support nor asm.js'
-         ' validation)')
 
 
 # utilities
@@ -380,10 +378,6 @@ def get_tests(test_dir, extensions=[]):
     if options.test_name_filter:
         tests = fnmatch.filter(tests, options.test_name_filter)
     return sorted(tests)
-
-
-if not options.interpreter:
-    warn('no interpreter provided (did not test spec interpreter validation)')
 
 
 if not options.spec_tests:

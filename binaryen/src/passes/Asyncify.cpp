@@ -677,7 +677,7 @@ public:
                             }
                             info.canChangeState = true;
                           },
-                          scanner.IgnoreIndirectCalls);
+                          scanner.IgnoreNonDirectCalls);
 
     map.swap(scanner.map);
 
@@ -1408,8 +1408,10 @@ struct Asyncify : public Pass {
     bool allImportsCanChangeState =
       stateChangingImports == "" && ignoreImports == "";
     String::Split listedImports(stateChangingImports, ",");
-    auto ignoreIndirect = runner->options.getArgumentOrDefault(
-                            "asyncify-ignore-indirect", "") == "";
+    // TODO: consider renaming asyncify-ignore-indirect to
+    //       asyncify-ignore-nondirect, but that could break users.
+    auto ignoreNonDirect = runner->options.getArgumentOrDefault(
+                             "asyncify-ignore-indirect", "") == "";
     std::string removeListInput =
       runner->options.getArgumentOrDefault("asyncify-removelist", "");
     if (removeListInput.empty()) {
@@ -1462,7 +1464,7 @@ struct Asyncify : public Pass {
     // Scan the module.
     ModuleAnalyzer analyzer(*module,
                             canImportChangeState,
-                            ignoreIndirect,
+                            ignoreNonDirect,
                             removeList,
                             addList,
                             onlyList,
@@ -1488,6 +1490,7 @@ struct Asyncify : public Pass {
         // because the flow changes add many branches, break up if-elses, etc.,
         // all of which extend the live ranges of locals. In other words, it is
         // not possible to coalesce well afterwards.
+        runner.add("remove-unused-names");
         runner.add("simplify-locals-nonesting");
         runner.add("reorder-locals");
         runner.add("coalesce-locals");
@@ -1569,9 +1572,9 @@ private:
         builder.makeIf(builder.makeBinary(GtUInt32, stackPos, stackEnd),
                        builder.makeUnreachable()));
       body->finalize();
-      auto* func = builder.makeFunction(
+      auto func = builder.makeFunction(
         name, Signature(Type(params), Type::none), {}, body);
-      module->addFunction(func);
+      module->addFunction(std::move(func));
       module->addExport(builder.makeExport(name, name, ExternalKind::Function));
     };
 

@@ -9,7 +9,7 @@ function preserveStack(func) {
 }
 
 function strToStack(str) {
-  return str ? allocate(intArrayFromString(str), 'i8', ALLOC_STACK) : 0;
+  return str ? allocate(intArrayFromString(str), ALLOC_STACK) : 0;
 }
 
 function i32sToStack(i32s) {
@@ -99,6 +99,7 @@ function initializeConstants() {
     'Pop',
     'I31New',
     'I31Get',
+    'CallRef',
     'RefTest',
     'RefCast',
     'BrOnCast',
@@ -415,8 +416,6 @@ function initializeConstants() {
     'MaxSVecI32x4',
     'MaxUVecI32x4',
     'NegVecI64x2',
-    'AnyTrueVecI64x2',
-    'AllTrueVecI64x2',
     'ShlVecI64x2',
     'ShrSVecI64x2',
     'ShrUVecI64x2',
@@ -629,6 +628,17 @@ function wrapModule(module, self = {}) {
     },
     'fill'(dest, value, size) {
       return Module['_BinaryenMemoryFill'](module, dest, value, size);
+    },
+    'atomic': {
+      'notify'(ptr, notifyCount) {
+        return Module['_BinaryenAtomicNotify'](module, ptr, notifyCount);
+      },
+      'wait32'(ptr, expected, timeout) {
+        return Module['_BinaryenAtomicWait'](module, ptr, expected, timeout, Module['i32']);
+      },
+      'wait64'(ptr, expected, timeout) {
+        return Module['_BinaryenAtomicWait'](module, ptr, expected, timeout, Module['i64']);
+      }
     }
   }
 
@@ -889,9 +899,6 @@ function wrapModule(module, self = {}) {
           return Module['_BinaryenAtomicCmpxchg'](module, 2, offset, ptr, expected, replacement, Module['i32'])
         },
       },
-      'wait'(ptr, expected, timeout) {
-        return Module['_BinaryenAtomicWait'](module, ptr, expected, timeout, Module['i32']);
-      }
     },
     'pop'() {
       return Module['_BinaryenPop'](module, Module['i32']);
@@ -1193,9 +1200,6 @@ function wrapModule(module, self = {}) {
           return Module['_BinaryenAtomicCmpxchg'](module, 4, offset, ptr, expected, replacement, Module['i64'])
         },
       },
-      'wait'(ptr, expected, timeout) {
-        return Module['_BinaryenAtomicWait'](module, ptr, expected, timeout, Module['i64']);
-      }
     },
     'pop'() {
       return Module['_BinaryenPop'](module, Module['i64']);
@@ -1822,12 +1826,6 @@ function wrapModule(module, self = {}) {
     'neg'(value) {
       return Module['_BinaryenUnary'](module, Module['NegVecI64x2'], value);
     },
-    'any_true'(value) {
-      return Module['_BinaryenUnary'](module, Module['AnyTrueVecI64x2'], value);
-    },
-    'all_true'(value) {
-      return Module['_BinaryenUnary'](module, Module['AllTrueVecI64x2'], value);
-    },
     'shl'(vec, shift) {
       return Module['_BinaryenSIMDShift'](module, Module['ShlVecI64x2'], vec, shift);
     },
@@ -2107,8 +2105,8 @@ function wrapModule(module, self = {}) {
     'is_null'(value) {
       return Module['_BinaryenRefIsNull'](module, value);
     },
-    'func'(func) {
-      return preserveStack(() => Module['_BinaryenRefFunc'](module, strToStack(func)));
+    'func'(func, type) {
+      return preserveStack(() => Module['_BinaryenRefFunc'](module, strToStack(func), type));
     },
     'eq'(left, right) {
       return Module['_BinaryenRefEq'](module, left, right);
@@ -2132,9 +2130,6 @@ function wrapModule(module, self = {}) {
   };
 
   self['atomic'] = {
-    'notify'(ptr, notifyCount) {
-      return Module['_BinaryenAtomicNotify'](module, ptr, notifyCount);
-    },
     'fence'() {
       return Module['_BinaryenAtomicFence'](module);
     }
@@ -2289,7 +2284,7 @@ function wrapModule(module, self = {}) {
       const segmentOffset = new Array(segmentsLen);
       for (let i = 0; i < segmentsLen; i++) {
         const { data, offset, passive } = segments[i];
-        segmentData[i] = allocate(data, 'i8', ALLOC_STACK);
+        segmentData[i] = allocate(data, ALLOC_STACK);
         segmentDataLen[i] = data.length;
         segmentPassive[i] = passive;
         segmentOffset[i] = offset;
@@ -2337,18 +2332,27 @@ function wrapModule(module, self = {}) {
       Module['_BinaryenAddCustomSection'](module, strToStack(name), i8sToStack(contents), contents.length)
     );
   };
+  self['getExport'] = function(externalName) {
+    return preserveStack(() => Module['_BinaryenGetExport'](module, strToStack(externalName)));
+  };
   self['getNumExports'] = function() {
     return Module['_BinaryenGetNumExports'](module);
-  }
-  self['getExportByIndex'] = function(id) {
-    return Module['_BinaryenGetExportByIndex'](module, id);
-  }
+  };
+  self['getExportByIndex'] = function(index) {
+    return Module['_BinaryenGetExportByIndex'](module, index);
+  };
   self['getNumFunctions'] = function() {
     return Module['_BinaryenGetNumFunctions'](module);
-  }
-  self['getFunctionByIndex'] = function(id) {
-    return Module['_BinaryenGetFunctionByIndex'](module, id);
-  }
+  };
+  self['getFunctionByIndex'] = function(index) {
+    return Module['_BinaryenGetFunctionByIndex'](module, index);
+  };
+  self['getNumGlobals'] = function() {
+    return Module['_BinaryenGetNumGlobals'](module);
+  };
+  self['getGlobalByIndex'] = function(index) {
+    return Module['_BinaryenGetGlobalByIndex'](module, index);
+  };
   self['emitText'] = function() {
     const old = out;
     let ret = '';
@@ -2990,7 +2994,7 @@ Module['emitText'] = function(expr) {
 Object.defineProperty(Module, 'readBinary', { writable: true });
 
 Module['readBinary'] = function(data) {
-  const buffer = allocate(data, 'i8', ALLOC_NORMAL);
+  const buffer = allocate(data, ALLOC_NORMAL);
   const ptr = Module['_BinaryenModuleRead'](buffer, data.length);
   _free(buffer);
   return wrapModule(ptr);

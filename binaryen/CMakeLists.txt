@@ -82,7 +82,7 @@ function(binaryen_setup_rpath name)
     set(_install_name_dir INSTALL_NAME_DIR "@rpath")
     set(_install_rpath "@loader_path/../lib")
   elseif(UNIX)
-    set(_install_rpath "\$ORIGIN/../lib")
+    set(_install_rpath "\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
     if(${CMAKE_SYSTEM_NAME} MATCHES "(FreeBSD|DragonFly)")
       set_property(TARGET ${name} APPEND_STRING PROPERTY
                    LINK_FLAGS " -Wl,-z,origin ")
@@ -214,6 +214,7 @@ else()
   add_compile_flag("-Wextra")
   add_compile_flag("-Wno-unused-parameter")
   add_compile_flag("-fno-omit-frame-pointer")
+  add_compile_flag("-fno-rtti")
   # TODO(https://github.com/WebAssembly/binaryen/pull/2314): Remove these two
   # flags once we resolve the issue.
   add_compile_flag("-Wno-implicit-int-float-conversion")
@@ -221,6 +222,7 @@ else()
   add_compile_flag("-Wswitch") # we explicitly expect this in the code
   if(WIN32)
     add_compile_flag("-D_GNU_SOURCE")
+    add_compile_flag("-D__STDC_FORMAT_MACROS")
     add_link_flag("-Wl,--stack,8388608")
   elseif(NOT EMSCRIPTEN)
     add_compile_flag("-fPIC")
@@ -275,6 +277,9 @@ add_subdirectory(src/passes)
 add_subdirectory(src/support)
 add_subdirectory(src/wasm)
 add_subdirectory(third_party)
+
+# Configure lit tests
+add_subdirectory(test/lit)
 
 # Object files
 set(binaryen_objs
@@ -331,6 +336,7 @@ binaryen_add_executable(wasm-as src/tools/wasm-as.cpp)
 binaryen_add_executable(wasm-dis src/tools/wasm-dis.cpp)
 binaryen_add_executable(wasm-ctor-eval src/tools/wasm-ctor-eval.cpp)
 binaryen_add_executable(wasm-reduce src/tools/wasm-reduce.cpp)
+binaryen_add_executable(wasm-split src/tools/wasm-split.cpp)
 
 
 # binaryen.js
@@ -388,3 +394,5 @@ if(EMSCRIPTEN)
   set_property(TARGET binaryen_js PROPERTY CXX_STANDARD_REQUIRED ON)
   install(TARGETS binaryen_js DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
+
+configure_file(scripts/binaryen-lit.in ${CMAKE_BINARY_DIR}/bin/binaryen-lit @ONLY)

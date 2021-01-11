@@ -22,12 +22,11 @@
 #include <sstream>
 #include <string>
 
-#include "asmjs/shared-constants.h"
 #include "mixed_arena.h"
 #include "shared-constants.h"
 #include "support/colors.h"
 #include "support/utilities.h"
-#include "wasm-printing.h"
+#include "wasm-traversal.h"
 #include "wasm.h"
 
 namespace wasm {

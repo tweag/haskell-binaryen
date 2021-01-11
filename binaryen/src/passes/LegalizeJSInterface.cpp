@@ -30,7 +30,6 @@
 // table even to a signature that is not legal.
 //
 
-#include "asm_v_wasm.h"
 #include "asmjs/shared-constants.h"
 #include "ir/import-utils.h"
 #include "ir/literal-utils.h"
@@ -54,7 +53,7 @@ struct LegalizeJSInterface : public Pass {
          .getArgumentOrDefault("legalize-js-interface-export-originals", "")
          .empty();
     // for each illegal export, we must export a legalized stub instead
-    std::vector<Export*> newExports;
+    std::vector<std::unique_ptr<Export>> newExports;
     for (auto& ex : module->exports) {
       if (ex->kind == ExternalKind::Function) {
         // if it's an import, ignore it
@@ -82,8 +81,8 @@ struct LegalizeJSInterface : public Pass {
         }
       }
     }
-    for (auto* ex : newExports) {
-      module->addExport(ex);
+    for (auto& ex : newExports) {
+      module->addExport(std::move(ex));
     }
     // Avoid iterator invalidation later.
     std::vector<Function*> originalFunctions;

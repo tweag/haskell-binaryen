@@ -41,46 +41,10 @@ static bool isInvoke(Function* F) {
   return F->imported() && F->module == ENV && F->base.startsWith("invoke_");
 }
 
-struct OptimizeCalls : public WalkerPass<PostWalker<OptimizeCalls>> {
-  bool isFunctionParallel() override { return true; }
-
-  Pass* create() override { return new OptimizeCalls; }
-
-  void visitCall(Call* curr) {
-    // special asm.js imports can be optimized
-    auto* func = getModule()->getFunction(curr->target);
-    if (!func->imported()) {
-      return;
-    }
-    if (func->module == GLOBAL_MATH) {
-      if (func->base == POW) {
-        if (auto* exponent = curr->operands[1]->dynCast<Const>()) {
-          if (exponent->value == Literal(double(2.0))) {
-            // This is just a square operation, do a multiply
-            Localizer localizer(curr->operands[0], getFunction(), getModule());
-            Builder builder(*getModule());
-            replaceCurrent(builder.makeBinary(
-              MulFloat64,
-              localizer.expr,
-              builder.makeLocalGet(localizer.index, localizer.expr->type)));
-          } else if (exponent->value == Literal(double(0.5))) {
-            // This is just a square root operation
-            replaceCurrent(
-              Builder(*getModule()).makeUnary(SqrtFloat64, curr->operands[0]));
-          }
-        }
-      }
-    }
-  }
-};
-
 } // namespace
 
 struct PostEmscripten : public Pass {
   void run(PassRunner* runner, Module* module) override {
-    // Optimize calls
-    OptimizeCalls().run(runner, module);
-
     // Optimize exceptions
     optimizeExceptions(runner, module);
   }
@@ -122,12 +86,12 @@ struct PostEmscripten : public Pass {
         }
       });
 
-    // Assume an indirect call might throw.
+    // Assume a non-direct call might throw.
     analyzer.propagateBack(
       [](const Info& info) { return info.canThrow; },
       [](const Info& info) { return true; },
       [](Info& info, Function* reason) { info.canThrow = true; },
-      analyzer.IndirectCallsHaveProperty);
+      analyzer.NonDirectCallsHaveProperty);
 
     // Apply the information.
     struct OptimizeInvokes : public WalkerPass<PostWalker<OptimizeInvokes>> {

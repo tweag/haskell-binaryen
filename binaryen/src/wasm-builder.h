@@ -41,11 +41,11 @@ public:
 
   // make* functions, other globals
 
-  Function* makeFunction(Name name,
-                         Signature sig,
-                         std::vector<Type>&& vars,
-                         Expression* body = nullptr) {
-    auto* func = new Function;
+  static std::unique_ptr<Function> makeFunction(Name name,
+                                                Signature sig,
+                                                std::vector<Type>&& vars,
+                                                Expression* body = nullptr) {
+    auto func = std::make_unique<Function>();
     func->name = name;
     func->sig = sig;
     func->body = body;
@@ -53,12 +53,12 @@ public:
     return func;
   }
 
-  Function* makeFunction(Name name,
-                         std::vector<NameType>&& params,
-                         Type resultType,
-                         std::vector<NameType>&& vars,
-                         Expression* body = nullptr) {
-    auto* func = new Function;
+  static std::unique_ptr<Function> makeFunction(Name name,
+                                                std::vector<NameType>&& params,
+                                                Type resultType,
+                                                std::vector<NameType>&& vars,
+                                                Expression* body = nullptr) {
+    auto func = std::make_unique<Function>();
     func->name = name;
     func->body = body;
     std::vector<Type> paramVec;
@@ -78,12 +78,34 @@ public:
     return func;
   }
 
-  Export* makeExport(Name name, Name value, ExternalKind kind) {
-    auto* export_ = new Export();
+  static std::unique_ptr<Export>
+  makeExport(Name name, Name value, ExternalKind kind) {
+    auto export_ = std::make_unique<Export>();
     export_->name = name;
     export_->value = value;
     export_->kind = kind;
     return export_;
+  }
+
+  enum Mutability { Mutable, Immutable };
+
+  static std::unique_ptr<Global>
+  makeGlobal(Name name, Type type, Expression* init, Mutability mutable_) {
+    auto glob = std::make_unique<Global>();
+    glob->name = name;
+    glob->type = type;
+    glob->init = init;
+    glob->mutable_ = mutable_ == Mutable;
+    return glob;
+  }
+
+  static std::unique_ptr<Event>
+  makeEvent(Name name, uint32_t attribute, Signature sig) {
+    auto event = std::make_unique<Event>();
+    event->name = name;
+    event->attribute = attribute;
+    event->sig = sig;
+    return event;
   }
 
   // IR nodes
@@ -221,13 +243,27 @@ public:
     call->finalize();
     return call;
   }
+  template<typename T>
   CallIndirect* makeCallIndirect(Expression* target,
-                                 const std::vector<Expression*>& args,
+                                 const T& args,
                                  Signature sig,
                                  bool isReturn = false) {
     auto* call = wasm.allocator.alloc<CallIndirect>();
     call->sig = sig;
     call->type = sig.results;
+    call->target = target;
+    call->operands.set(args);
+    call->isReturn = isReturn;
+    call->finalize();
+    return call;
+  }
+  template<typename T>
+  CallRef* makeCallRef(Expression* target,
+                       const T& args,
+                       Type type,
+                       bool isReturn = false) {
+    auto* call = wasm.allocator.alloc<CallRef>();
+    call->type = type;
     call->target = target;
     call->operands.set(args);
     call->isReturn = isReturn;
@@ -434,6 +470,32 @@ public:
     ret->finalize();
     return ret;
   }
+  SIMDLoadStoreLane* makeSIMDLoadStoreLane(SIMDLoadStoreLaneOp op,
+                                           Address offset,
+                                           Address align,
+                                           uint8_t index,
+                                           Expression* ptr,
+                                           Expression* vec) {
+    auto* ret = wasm.allocator.alloc<SIMDLoadStoreLane>();
+    ret->op = op;
+    ret->offset = offset;
+    ret->align = align;
+    ret->index = index;
+    ret->ptr = ptr;
+    ret->vec = vec;
+    ret->finalize();
+    return ret;
+  }
+  Prefetch*
+  makePrefetch(PrefetchOp op, Address offset, Address align, Expression* ptr) {
+    auto* ret = wasm.allocator.alloc<Prefetch>();
+    ret->op = op;
+    ret->offset = offset;
+    ret->align = align;
+    ret->ptr = ptr;
+    ret->finalize();
+    return ret;
+  }
   MemoryInit* makeMemoryInit(uint32_t segment,
                              Expression* dest,
                              Expression* offset,
@@ -549,10 +611,10 @@ public:
     ret->finalize();
     return ret;
   }
-  RefFunc* makeRefFunc(Name func) {
+  RefFunc* makeRefFunc(Name func, Type type) {
     auto* ret = wasm.allocator.alloc<RefFunc>();
     ret->func = func;
-    ret->finalize();
+    ret->finalize(type);
     return ret;
   }
   RefEq* makeRefEq(Expression* left, Expression* right) {
@@ -639,75 +701,104 @@ public:
     ret->finalize();
     return ret;
   }
-  RefTest* makeRefTest() {
+  RefTest* makeRefTest(Expression* ref, Expression* rtt) {
     auto* ret = wasm.allocator.alloc<RefTest>();
-    WASM_UNREACHABLE("TODO (gc): ref.test");
+    ret->ref = ref;
+    ret->rtt = rtt;
     ret->finalize();
     return ret;
   }
-  RefCast* makeRefCast() {
+  RefCast* makeRefCast(Expression* ref, Expression* rtt) {
     auto* ret = wasm.allocator.alloc<RefCast>();
-    WASM_UNREACHABLE("TODO (gc): ref.cast");
+    ret->ref = ref;
+    ret->rtt = rtt;
     ret->finalize();
     return ret;
   }
-  BrOnCast* makeBrOnCast() {
+  BrOnCast*
+  makeBrOnCast(Name name, HeapType heapType, Expression* ref, Expression* rtt) {
     auto* ret = wasm.allocator.alloc<BrOnCast>();
-    WASM_UNREACHABLE("TODO (gc): br_on_cast");
+    ret->name = name;
+    ret->castType = Type(heapType, Nullable);
+    ret->ref = ref;
+    ret->rtt = rtt;
     ret->finalize();
     return ret;
   }
-  RttCanon* makeRttCanon() {
+  RttCanon* makeRttCanon(HeapType heapType) {
     auto* ret = wasm.allocator.alloc<RttCanon>();
-    WASM_UNREACHABLE("TODO (gc): rtt.canon");
+    ret->type = Type(Rtt(0, heapType));
     ret->finalize();
     return ret;
   }
-  RttSub* makeRttSub() {
+  RttSub* makeRttSub(HeapType heapType, Expression* parent) {
     auto* ret = wasm.allocator.alloc<RttSub>();
-    WASM_UNREACHABLE("TODO (gc): rtt.sub");
+    ret->parent = parent;
+    auto parentRtt = parent->type.getRtt();
+    if (parentRtt.hasDepth()) {
+      ret->type = Type(Rtt(parentRtt.depth + 1, heapType));
+    } else {
+      ret->type = Type(Rtt(heapType));
+    }
     ret->finalize();
     return ret;
   }
-  StructNew* makeStructNew() {
+  template<typename T>
+  StructNew* makeStructNew(Expression* rtt, const T& args) {
     auto* ret = wasm.allocator.alloc<StructNew>();
-    WASM_UNREACHABLE("TODO (gc): struct.new");
+    ret->rtt = rtt;
+    ret->operands.set(args);
     ret->finalize();
     return ret;
   }
-  StructGet* makeStructGet() {
+  StructGet*
+  makeStructGet(Index index, Expression* ref, Type type, bool signed_ = false) {
     auto* ret = wasm.allocator.alloc<StructGet>();
-    WASM_UNREACHABLE("TODO (gc): struct.get");
+    ret->index = index;
+    ret->ref = ref;
+    ret->type = type;
+    ret->signed_ = signed_;
     ret->finalize();
     return ret;
   }
-  StructSet* makeStructSet() {
+  StructSet* makeStructSet(Index index, Expression* ref, Expression* value) {
     auto* ret = wasm.allocator.alloc<StructSet>();
-    WASM_UNREACHABLE("TODO (gc): struct.set");
+    ret->index = index;
+    ret->ref = ref;
+    ret->value = value;
     ret->finalize();
     return ret;
   }
-  ArrayNew* makeArrayNew() {
+  ArrayNew*
+  makeArrayNew(Expression* rtt, Expression* size, Expression* init = nullptr) {
     auto* ret = wasm.allocator.alloc<ArrayNew>();
-    WASM_UNREACHABLE("TODO (gc): array.new");
+    ret->rtt = rtt;
+    ret->size = size;
+    ret->init = init;
     ret->finalize();
     return ret;
   }
-  ArrayGet* makeArrayGet() {
+  ArrayGet*
+  makeArrayGet(Expression* ref, Expression* index, bool signed_ = false) {
     auto* ret = wasm.allocator.alloc<ArrayGet>();
-    WASM_UNREACHABLE("TODO (gc): array.get");
+    ret->ref = ref;
+    ret->index = index;
+    ret->signed_ = signed_;
     ret->finalize();
     return ret;
   }
-  ArraySet* makeArraySet() {
+  ArraySet*
+  makeArraySet(Expression* ref, Expression* index, Expression* value) {
     auto* ret = wasm.allocator.alloc<ArraySet>();
-    WASM_UNREACHABLE("TODO (gc): array.set");
+    ret->ref = ref;
+    ret->index = index;
+    ret->value = value;
     ret->finalize();
     return ret;
   }
-  ArrayLen* makeArrayLen() {
+  ArrayLen* makeArrayLen(Expression* ref) {
     auto* ret = wasm.allocator.alloc<ArrayLen>();
-    WASM_UNREACHABLE("TODO (gc): array.len");
+    ret->ref = ref;
     ret->finalize();
     return ret;
   }
@@ -724,24 +815,28 @@ public:
   // Make a constant expression. This might be a wasm Const, or something
   // else of constant value like ref.null.
   Expression* makeConstantExpression(Literal value) {
-    TODO_SINGLE_COMPOUND(value.type);
-    switch (value.type.getBasic()) {
-      case Type::funcref:
-        if (!value.isNull()) {
-          return makeRefFunc(value.getFunc());
-        }
-        return makeRefNull(value.type);
+    auto type = value.type;
+    if (type.isNumber()) {
+      return makeConst(value);
+    }
+    if (value.isNull()) {
+      return makeRefNull(type);
+    }
+    if (type.isFunction()) {
+      return makeRefFunc(value.getFunc(), type);
+    }
+    TODO_SINGLE_COMPOUND(type);
+    switch (type.getBasic()) {
       case Type::externref:
       case Type::exnref: // TODO: ExceptionPackage?
       case Type::anyref:
       case Type::eqref:
         assert(value.isNull() && "unexpected non-null reference type literal");
-        return makeRefNull(value.type);
+        return makeRefNull(type);
       case Type::i31ref:
         return makeI31New(makeConst(value.geti31()));
       default:
-        assert(value.type.isNumber());
-        return makeConst(value);
+        WASM_UNREACHABLE("invalid constant expression");
     }
   }
 
@@ -906,6 +1001,13 @@ public:
     if (curr->type.isTuple()) {
       return makeConstantExpression(Literal::makeZeros(curr->type));
     }
+    if (curr->type.isNullable()) {
+      return ExpressionManipulator::refNull(curr, curr->type);
+    }
+    if (curr->type.isFunction()) {
+      // We can't do any better, keep the original.
+      return curr;
+    }
     Literal value;
     // TODO: reuse node conditionally when possible for literals
     TODO_SINGLE_COMPOUND(curr->type);
@@ -929,6 +1031,7 @@ public:
         break;
       }
       case Type::funcref:
+        WASM_UNREACHABLE("handled above");
       case Type::externref:
       case Type::exnref:
       case Type::anyref:
@@ -942,28 +1045,6 @@ public:
         return ExpressionManipulator::unreachable(curr);
     }
     return makeConst(value);
-  }
-
-  // Module-level helpers
-
-  enum Mutability { Mutable, Immutable };
-
-  static Global*
-  makeGlobal(Name name, Type type, Expression* init, Mutability mutable_) {
-    auto* glob = new Global;
-    glob->name = name;
-    glob->type = type;
-    glob->init = init;
-    glob->mutable_ = mutable_ == Mutable;
-    return glob;
-  }
-
-  static Event* makeEvent(Name name, uint32_t attribute, Signature sig) {
-    auto* event = new Event;
-    event->name = name;
-    event->attribute = attribute;
-    event->sig = sig;
-    return event;
   }
 };
 

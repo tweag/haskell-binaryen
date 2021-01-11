@@ -169,6 +169,7 @@ function test_ids() {
   console.log("TupleExtractId: " + binaryen.TupleExtractId);
   console.log("I31NewId: " + binaryen.I31NewId);
   console.log("I31GetId: " + binaryen.I31GetId);
+  console.log("CallRefId: " + binaryen.CallRefId);
   console.log("RefTestId: " + binaryen.RefTestId);
   console.log("RefCastId: " + binaryen.RefCastId);
   console.log("BrOnCastId: " + binaryen.BrOnCastId);
@@ -280,8 +281,6 @@ function test_core() {
     module.i32x4.all_true(module.v128.const(v128_bytes)),
     module.i32x4.bitmask(module.v128.const(v128_bytes)),
     module.i64x2.neg(module.v128.const(v128_bytes)),
-    module.i64x2.any_true(module.v128.const(v128_bytes)),
-    module.i64x2.all_true(module.v128.const(v128_bytes)),
     module.f32x4.abs(module.v128.const(v128_bytes)),
     module.f32x4.neg(module.v128.const(v128_bytes)),
     module.f32x4.sqrt(module.v128.const(v128_bytes)),
@@ -539,8 +538,8 @@ function test_core() {
     // Reference types
     module.ref.is_null(module.ref.null(binaryen.externref)),
     module.ref.is_null(module.ref.null(binaryen.funcref)),
-    module.ref.is_null(module.ref.func("kitchen()sinker")),
-    module.select(temp10, module.ref.null(binaryen.funcref), module.ref.func("kitchen()sinker"), binaryen.funcref),
+    module.ref.is_null(module.ref.func("kitchen()sinker", binaryen.funcref)),
+    module.select(temp10, module.ref.null(binaryen.funcref), module.ref.func("kitchen()sinker", binaryen.funcref), binaryen.funcref),
 
     // GC
     module.ref.eq(module.ref.null(binaryen.eqref), module.ref.null(binaryen.eqref)),
@@ -570,14 +569,14 @@ function test_core() {
       )
     ),
     module.drop(
-      module.i32.atomic.wait(
+      module.memory.atomic.wait32(
         module.i32.const(0),
         module.i32.const(0),
         module.i64.const(0)
       )
     ),
     module.drop(
-      module.atomic.notify(
+      module.memory.atomic.notify(
         module.i32.const(0),
         module.i32.const(0)
       )
@@ -1034,7 +1033,16 @@ function test_for_each() {
   var expected_data = ["hello, world", "segment data 2"];
   var expected_passive = [false, false];
 
-  var global = module.addGlobal("a-global", binaryen.i32, false, module.i32.const(expected_offsets[1]))
+  var glos = [
+    module.addGlobal("a-global", binaryen.i32, false, module.i32.const(expected_offsets[1])),
+    module.addGlobal("a-global2", binaryen.i32, false, module.i32.const(2)),
+    module.addGlobal("a-global3", binaryen.i32, false, module.i32.const(3))
+  ];
+
+  for (i = 0; i < module.getNumGlobals(); i++) {
+    assert(module.getGlobalByIndex(i) === glos[i]);
+  }
+
   module.setMemory(1, 256, "mem", [
     {
       passive: expected_passive[0],

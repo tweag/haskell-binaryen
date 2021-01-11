@@ -310,7 +310,8 @@ void test_core() {
                         temp15 = makeInt32(module, 110), temp16 = makeInt64(module, 111);
   BinaryenExpressionRef externrefExpr = BinaryenRefNull(module, BinaryenTypeExternref());
   BinaryenExpressionRef funcrefExpr = BinaryenRefNull(module, BinaryenTypeFuncref());
-  funcrefExpr = BinaryenRefFunc(module, "kitchen()sinker");
+  funcrefExpr =
+    BinaryenRefFunc(module, "kitchen()sinker", BinaryenTypeFuncref());
   BinaryenExpressionRef exnrefExpr = BinaryenRefNull(module, BinaryenTypeExnref());
   BinaryenExpressionRef i31refExpr = BinaryenI31New(module, makeInt32(module, 1));
 
@@ -434,8 +435,6 @@ void test_core() {
     makeUnary(module, BinaryenAllTrueVecI32x4(), v128),
     makeUnary(module, BinaryenBitmaskVecI32x4(), v128),
     makeUnary(module, BinaryenNegVecI64x2(), v128),
-    makeUnary(module, BinaryenAnyTrueVecI64x2(), v128),
-    makeUnary(module, BinaryenAllTrueVecI64x2(), v128),
     makeUnary(module, BinaryenAbsVecF32x4(), v128),
     makeUnary(module, BinaryenNegVecF32x4(), v128),
     makeUnary(module, BinaryenSqrtVecF32x4(), v128),
@@ -580,10 +579,10 @@ void test_core() {
     makeBinary(module, BinaryenMaxVecF32x4(), v128),
     makeBinary(module, BinaryenPMinVecF32x4(), v128),
     makeBinary(module, BinaryenPMaxVecF32x4(), v128),
-    makeBinary(module, BinaryenCeilVecF32x4(), v128),
-    makeBinary(module, BinaryenFloorVecF32x4(), v128),
-    makeBinary(module, BinaryenTruncVecF32x4(), v128),
-    makeBinary(module, BinaryenNearestVecF32x4(), v128),
+    makeUnary(module, BinaryenCeilVecF32x4(), v128),
+    makeUnary(module, BinaryenFloorVecF32x4(), v128),
+    makeUnary(module, BinaryenTruncVecF32x4(), v128),
+    makeUnary(module, BinaryenNearestVecF32x4(), v128),
     makeBinary(module, BinaryenAddVecF64x2(), v128),
     makeBinary(module, BinaryenSubVecF64x2(), v128),
     makeBinary(module, BinaryenMulVecF64x2(), v128),
@@ -592,10 +591,10 @@ void test_core() {
     makeBinary(module, BinaryenMaxVecF64x2(), v128),
     makeBinary(module, BinaryenPMinVecF64x2(), v128),
     makeBinary(module, BinaryenPMaxVecF64x2(), v128),
-    makeBinary(module, BinaryenCeilVecF64x2(), v128),
-    makeBinary(module, BinaryenFloorVecF64x2(), v128),
-    makeBinary(module, BinaryenTruncVecF64x2(), v128),
-    makeBinary(module, BinaryenNearestVecF64x2(), v128),
+    makeUnary(module, BinaryenCeilVecF64x2(), v128),
+    makeUnary(module, BinaryenFloorVecF64x2(), v128),
+    makeUnary(module, BinaryenTruncVecF64x2(), v128),
+    makeUnary(module, BinaryenNearestVecF64x2(), v128),
     makeBinary(module, BinaryenNarrowSVecI16x8ToVecI8x16(), v128),
     makeBinary(module, BinaryenNarrowUVecI16x8ToVecI8x16(), v128),
     makeBinary(module, BinaryenNarrowSVecI32x4ToVecI16x8(), v128),
@@ -737,15 +736,16 @@ void test_core() {
     BinaryenRefIsNull(module, externrefExpr),
     BinaryenRefIsNull(module, funcrefExpr),
     BinaryenRefIsNull(module, exnrefExpr),
-    BinaryenSelect(module,
-                   temp10,
-                   BinaryenRefNull(module, BinaryenTypeFuncref()),
-                   BinaryenRefFunc(module, "kitchen()sinker"),
-                   BinaryenTypeFuncref()),
+    BinaryenSelect(
+      module,
+      temp10,
+      BinaryenRefNull(module, BinaryenTypeFuncref()),
+      BinaryenRefFunc(module, "kitchen()sinker", BinaryenTypeFuncref()),
+      BinaryenTypeFuncref()),
     // GC
     BinaryenRefEq(module,
-      BinaryenRefNull(module, BinaryenTypeEqref()),
-      BinaryenRefNull(module, BinaryenTypeEqref())),
+                  BinaryenRefNull(module, BinaryenTypeEqref()),
+                  BinaryenRefNull(module, BinaryenTypeEqref())),
     // Exception handling
     BinaryenTry(module, tryBody, catchBody),
     // Atomics
@@ -1365,6 +1365,31 @@ void test_for_each() {
   BinaryenModuleDispose(module);
 }
 
+void test_func_opt() {
+  BinaryenModuleRef module = BinaryenModuleCreate();
+  BinaryenType ii_[2] = {BinaryenTypeInt32(), BinaryenTypeInt32()};
+  BinaryenType ii = BinaryenTypeCreate(ii_, 2);
+  BinaryenExpressionRef x = BinaryenConst(module, BinaryenLiteralInt32(1)),
+                        y = BinaryenConst(module, BinaryenLiteralInt32(3));
+  BinaryenExpressionRef add = BinaryenBinary(module, BinaryenAddInt32(), x, y);
+  BinaryenFunctionRef adder = BinaryenAddFunction(
+    module, "adder", BinaryenTypeNone(), BinaryenTypeInt32(), NULL, 0, add);
+
+  puts("module with a function to optimize:");
+  BinaryenModulePrint(module);
+
+  assert(BinaryenModuleValidate(module));
+
+  BinaryenFunctionOptimize(adder, module);
+
+  assert(BinaryenModuleValidate(module));
+
+  puts("optimized:");
+  BinaryenModulePrint(module);
+
+  BinaryenModuleDispose(module);
+}
+
 int main() {
   test_types();
   test_features();
@@ -1376,6 +1401,7 @@ int main() {
   test_nonvalid();
   test_color_status();
   test_for_each();
+  test_func_opt();
 
   return 0;
 }

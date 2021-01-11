@@ -287,7 +287,9 @@ struct Reducer
           currCommand += " -g ";
         }
         if (!binary) {
-          currCommand += " -S ";
+          currCommand += " -S --all-features ";
+        } else {
+          currCommand += " --detect-features ";
         }
         if (verbose) {
           std::cerr << "|    trying pass command: " << currCommand << "\n";
@@ -578,7 +580,10 @@ struct Reducer
           continue; // no conversion
         }
         Expression* fixed = nullptr;
-        TODO_SINGLE_COMPOUND(curr->type);
+        if (!curr->type.isBasic() || !child->type.isBasic()) {
+          // TODO: handle compound types
+          continue;
+        }
         switch (curr->type.getBasic()) {
           case Type::i32: {
             TODO_SINGLE_COMPOUND(child->type);
@@ -937,6 +942,11 @@ struct Reducer
           replaceCurrent(Builder(*getModule()).replaceWithIdenticalType(curr));
         }
       }
+      void visitRefFunc(RefFunc* curr) {
+        if (names.count(curr->func)) {
+          replaceCurrent(Builder(*getModule()).replaceWithIdenticalType(curr));
+        }
+      }
       void visitExport(Export* curr) {
         if (names.count(curr->value)) {
           exportsToRemove.push_back(curr->name);
@@ -1034,7 +1044,12 @@ struct Reducer
         builder->makeConstantExpression(Literal::makeZeros(curr->type));
       return tryToReplaceCurrent(n);
     }
-    Const* c = builder->makeConst(int32_t(0));
+    if (!curr->type.isNumber()) {
+      return false;
+    }
+    // It's a number: try to replace it with a 0 or a 1 (trying more values
+    // could make sense too, but these handle most cases).
+    auto* c = builder->makeConst(Literal::makeZero(curr->type));
     if (tryToReplaceCurrent(c)) {
       return true;
     }
@@ -1204,10 +1219,12 @@ int main(int argc, const char* argv[]) {
                "(read-written) binary\n";
   {
     // read and write it
-    auto cmd = Path::getBinaryenBinaryTool("wasm-opt") + " " + input +
-               " --detect-features -o " + test;
+    auto cmd =
+      Path::getBinaryenBinaryTool("wasm-opt") + " " + input + " -o " + test;
     if (!binary) {
-      cmd += " -S";
+      cmd += " -S --all-features";
+    } else {
+      cmd += " --detect-features";
     }
     ProgramResult readWrite(cmd);
     if (readWrite.failed()) {

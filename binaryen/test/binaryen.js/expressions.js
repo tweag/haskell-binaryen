@@ -901,7 +901,7 @@ console.log("# AtomicWait");
   var ptr = module.i32.const(2);
   var expected = module.i32.const(3);
   var timeout = module.i64.const(4);
-  const theAtomicWait = binaryen.AtomicWait(module.i32.atomic.wait(ptr, expected, timeout));
+  const theAtomicWait = binaryen.AtomicWait(module.memory.atomic.wait32(ptr, expected, timeout));
   assert(theAtomicWait instanceof binaryen.AtomicWait);
   assert(theAtomicWait instanceof binaryen.Expression);
   assert(theAtomicWait.ptr === ptr);
@@ -926,7 +926,7 @@ console.log("# AtomicWait");
   assert(
     theAtomicWait.toText()
     ==
-    "(i64.atomic.wait\n (i32.const 5)\n (i32.const 6)\n (i64.const 7)\n)\n"
+    "(memory.atomic.wait64\n (i32.const 5)\n (i32.const 6)\n (i64.const 7)\n)\n"
   );
 
   module.dispose();
@@ -938,7 +938,7 @@ console.log("# AtomicNotify");
 
   var ptr = module.i32.const(1);
   var notifyCount = module.i32.const(2);
-  const theAtomicNotify = binaryen.AtomicNotify(module.atomic.notify(ptr, notifyCount));
+  const theAtomicNotify = binaryen.AtomicNotify(module.memory.atomic.notify(ptr, notifyCount));
   assert(theAtomicNotify instanceof binaryen.AtomicNotify);
   assert(theAtomicNotify instanceof binaryen.Expression);
   assert(theAtomicNotify.ptr === ptr);
@@ -957,7 +957,7 @@ console.log("# AtomicNotify");
   assert(
     theAtomicNotify.toText()
     ==
-    "(atomic.notify\n (i32.const 3)\n (i32.const 4)\n)\n"
+    "(memory.atomic.notify\n (i32.const 3)\n (i32.const 4)\n)\n"
   );
 
   module.dispose();
@@ -1378,7 +1378,7 @@ console.log("# RefFunc");
   const module = new binaryen.Module();
 
   var func = "a";
-  const theRefFunc = binaryen.RefFunc(module.ref.func(func));
+  const theRefFunc = binaryen.RefFunc(module.ref.func(func, binaryen.funcref));
   assert(theRefFunc instanceof binaryen.RefFunc);
   assert(theRefFunc instanceof binaryen.Expression);
   assert(theRefFunc.func === func);
@@ -1388,7 +1388,8 @@ console.log("# RefFunc");
   assert(theRefFunc.func === func);
   theRefFunc.type = binaryen.f64;
   theRefFunc.finalize();
-  assert(theRefFunc.type === binaryen.funcref);
+  // TODO The type is a subtype of funcref, but we can't check that in the JS
+  //      API atm.
 
   console.log(theRefFunc.toText());
   assert(

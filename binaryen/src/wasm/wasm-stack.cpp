@@ -20,13 +20,15 @@
 
 namespace wasm {
 
+static Name IMPOSSIBLE_CONTINUE("impossible-continue");
+
 void BinaryInstWriter::emitResultType(Type type) {
   if (type == Type::unreachable) {
-    o << binaryType(Type::none);
+    parent.writeType(Type::none);
   } else if (type.isTuple()) {
     o << S32LEB(parent.getTypeIndex(Signature(Type::none, type)));
   } else {
-    o << binaryType(type);
+    parent.writeType(type);
   }
 }
 
@@ -351,7 +353,7 @@ void BinaryInstWriter::visitAtomicRMW(AtomicRMW* curr) {
   o << int8_t(BinaryConsts::AtomicPrefix);
 
 #define CASE_FOR_OP(Op)                                                        \
-  case Op:                                                                     \
+  case RMW##Op:                                                                \
     switch (curr->type.getBasic()) {                                           \
       case Type::i32:                                                          \
         switch (curr->bytes) {                                                 \
@@ -558,6 +560,18 @@ void BinaryInstWriter::visitSIMDTernary(SIMDTernary* curr) {
     case QFMSF64x2:
       o << U32LEB(BinaryConsts::F64x2QFMS);
       break;
+    case SignSelectVec8x16:
+      o << U32LEB(BinaryConsts::V8x16SignSelect);
+      break;
+    case SignSelectVec16x8:
+      o << U32LEB(BinaryConsts::V16x8SignSelect);
+      break;
+    case SignSelectVec32x4:
+      o << U32LEB(BinaryConsts::V32x4SignSelect);
+      break;
+    case SignSelectVec64x2:
+      o << U32LEB(BinaryConsts::V64x2SignSelect);
+      break;
   }
 }
 
@@ -641,6 +655,53 @@ void BinaryInstWriter::visitSIMDLoad(SIMDLoad* curr) {
       break;
     case Load64Zero:
       o << U32LEB(BinaryConsts::V128Load64Zero);
+      break;
+  }
+  assert(curr->align);
+  emitMemoryAccess(curr->align, /*(unused) bytes=*/0, curr->offset);
+}
+
+void BinaryInstWriter::visitSIMDLoadStoreLane(SIMDLoadStoreLane* curr) {
+  o << int8_t(BinaryConsts::SIMDPrefix);
+  switch (curr->op) {
+    case LoadLaneVec8x16:
+      o << U32LEB(BinaryConsts::V128Load8Lane);
+      break;
+    case LoadLaneVec16x8:
+      o << U32LEB(BinaryConsts::V128Load16Lane);
+      break;
+    case LoadLaneVec32x4:
+      o << U32LEB(BinaryConsts::V128Load32Lane);
+      break;
+    case LoadLaneVec64x2:
+      o << U32LEB(BinaryConsts::V128Load64Lane);
+      break;
+    case StoreLaneVec8x16:
+      o << U32LEB(BinaryConsts::V128Store8Lane);
+      break;
+    case StoreLaneVec16x8:
+      o << U32LEB(BinaryConsts::V128Store16Lane);
+      break;
+    case StoreLaneVec32x4:
+      o << U32LEB(BinaryConsts::V128Store32Lane);
+      break;
+    case StoreLaneVec64x2:
+      o << U32LEB(BinaryConsts::V128Store64Lane);
+      break;
+  }
+  assert(curr->align);
+  emitMemoryAccess(curr->align, /*(unused) bytes=*/0, curr->offset);
+  o << curr->index;
+}
+
+void BinaryInstWriter::visitPrefetch(Prefetch* curr) {
+  o << int8_t(BinaryConsts::SIMDPrefix);
+  switch (curr->op) {
+    case PrefetchTemporal:
+      o << U32LEB(BinaryConsts::PrefetchT);
+      break;
+    case PrefetchNontemporal:
+      o << U32LEB(BinaryConsts::PrefetchNT);
       break;
   }
   assert(curr->align);
@@ -938,6 +999,10 @@ void BinaryInstWriter::visitUnary(Unary* curr) {
       o << int8_t(BinaryConsts::SIMDPrefix)
         << U32LEB(BinaryConsts::I8x16Bitmask);
       break;
+    case PopcntVecI8x16:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I8x16Popcnt);
+      break;
     case AbsVecI16x8:
       o << int8_t(BinaryConsts::SIMDPrefix) << U32LEB(BinaryConsts::I16x8Abs);
       break;
@@ -977,13 +1042,9 @@ void BinaryInstWriter::visitUnary(Unary* curr) {
     case NegVecI64x2:
       o << int8_t(BinaryConsts::SIMDPrefix) << U32LEB(BinaryConsts::I64x2Neg);
       break;
-    case AnyTrueVecI64x2:
+    case BitmaskVecI64x2:
       o << int8_t(BinaryConsts::SIMDPrefix)
-        << U32LEB(BinaryConsts::I64x2AnyTrue);
-      break;
-    case AllTrueVecI64x2:
-      o << int8_t(BinaryConsts::SIMDPrefix)
-        << U32LEB(BinaryConsts::I64x2AllTrue);
+        << U32LEB(BinaryConsts::I64x2Bitmask);
       break;
     case AbsVecF32x4:
       o << int8_t(BinaryConsts::SIMDPrefix) << U32LEB(BinaryConsts::F32x4Abs);
@@ -1028,6 +1089,22 @@ void BinaryInstWriter::visitUnary(Unary* curr) {
     case NearestVecF64x2:
       o << int8_t(BinaryConsts::SIMDPrefix)
         << U32LEB(BinaryConsts::F64x2Nearest);
+      break;
+    case ExtAddPairwiseSVecI8x16ToI16x8:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I16x8ExtAddPairWiseSI8x16);
+      break;
+    case ExtAddPairwiseUVecI8x16ToI16x8:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I16x8ExtAddPairWiseUI8x16);
+      break;
+    case ExtAddPairwiseSVecI16x8ToI32x4:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I32x4ExtAddPairWiseSI16x8);
+      break;
+    case ExtAddPairwiseUVecI16x8ToI32x4:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I32x4ExtAddPairWiseUI16x8);
       break;
     case TruncSatSVecF32x4ToVecI32x4:
       o << int8_t(BinaryConsts::SIMDPrefix)
@@ -1092,6 +1169,22 @@ void BinaryInstWriter::visitUnary(Unary* curr) {
     case WidenHighUVecI16x8ToVecI32x4:
       o << int8_t(BinaryConsts::SIMDPrefix)
         << U32LEB(BinaryConsts::I32x4WidenHighUI16x8);
+      break;
+    case WidenLowSVecI32x4ToVecI64x2:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I64x2WidenLowSI32x4);
+      break;
+    case WidenHighSVecI32x4ToVecI64x2:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I64x2WidenHighSI32x4);
+      break;
+    case WidenLowUVecI32x4ToVecI64x2:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I64x2WidenLowUI32x4);
+      break;
+    case WidenHighUVecI32x4ToVecI64x2:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I64x2WidenHighUI32x4);
       break;
     case InvalidUnary:
       WASM_UNREACHABLE("invalid unary op");
@@ -1422,6 +1515,9 @@ void BinaryInstWriter::visitBinary(Binary* curr) {
     case GeUVecI32x4:
       o << int8_t(BinaryConsts::SIMDPrefix) << U32LEB(BinaryConsts::I32x4GeU);
       break;
+    case EqVecI64x2:
+      o << int8_t(BinaryConsts::SIMDPrefix) << U32LEB(BinaryConsts::I64x2Eq);
+      break;
     case EqVecF32x4:
       o << int8_t(BinaryConsts::SIMDPrefix) << U32LEB(BinaryConsts::F32x4Eq);
       break;
@@ -1550,6 +1646,26 @@ void BinaryInstWriter::visitBinary(Binary* curr) {
     case AvgrUVecI16x8:
       o << int8_t(BinaryConsts::SIMDPrefix) << U32LEB(BinaryConsts::I16x8AvgrU);
       break;
+    case Q15MulrSatSVecI16x8:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I16x8Q15MulrSatS);
+      break;
+    case ExtMulLowSVecI16x8:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I16x8ExtMulLowSI8x16);
+      break;
+    case ExtMulHighSVecI16x8:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I16x8ExtMulHighSI8x16);
+      break;
+    case ExtMulLowUVecI16x8:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I16x8ExtMulLowUI8x16);
+      break;
+    case ExtMulHighUVecI16x8:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I16x8ExtMulHighUI8x16);
+      break;
     case AddVecI32x4:
       o << int8_t(BinaryConsts::SIMDPrefix) << U32LEB(BinaryConsts::I32x4Add);
       break;
@@ -1575,6 +1691,22 @@ void BinaryInstWriter::visitBinary(Binary* curr) {
       o << int8_t(BinaryConsts::SIMDPrefix)
         << U32LEB(BinaryConsts::I32x4DotSVecI16x8);
       break;
+    case ExtMulLowSVecI32x4:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I32x4ExtMulLowSI16x8);
+      break;
+    case ExtMulHighSVecI32x4:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I32x4ExtMulHighSI16x8);
+      break;
+    case ExtMulLowUVecI32x4:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I32x4ExtMulLowUI16x8);
+      break;
+    case ExtMulHighUVecI32x4:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I32x4ExtMulHighUI16x8);
+      break;
     case AddVecI64x2:
       o << int8_t(BinaryConsts::SIMDPrefix) << U32LEB(BinaryConsts::I64x2Add);
       break;
@@ -1583,6 +1715,22 @@ void BinaryInstWriter::visitBinary(Binary* curr) {
       break;
     case MulVecI64x2:
       o << int8_t(BinaryConsts::SIMDPrefix) << U32LEB(BinaryConsts::I64x2Mul);
+      break;
+    case ExtMulLowSVecI64x2:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I64x2ExtMulLowSI32x4);
+      break;
+    case ExtMulHighSVecI64x2:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I64x2ExtMulHighSI32x4);
+      break;
+    case ExtMulLowUVecI64x2:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I64x2ExtMulLowUI32x4);
+      break;
+    case ExtMulHighUVecI64x2:
+      o << int8_t(BinaryConsts::SIMDPrefix)
+        << U32LEB(BinaryConsts::I64x2ExtMulHighUI32x4);
       break;
 
     case AddVecF32x4:
@@ -1665,8 +1813,8 @@ void BinaryInstWriter::visitSelect(Select* curr) {
   if (curr->type.isRef()) {
     o << int8_t(BinaryConsts::SelectWithType) << U32LEB(curr->type.size());
     for (size_t i = 0; i < curr->type.size(); i++) {
-      o << binaryType(curr->type != Type::unreachable ? curr->type
-                                                      : Type::none);
+      parent.writeType(curr->type != Type::unreachable ? curr->type
+                                                       : Type::none);
     }
   } else {
     o << int8_t(BinaryConsts::Select);
@@ -1688,8 +1836,8 @@ void BinaryInstWriter::visitMemoryGrow(MemoryGrow* curr) {
 }
 
 void BinaryInstWriter::visitRefNull(RefNull* curr) {
-  o << int8_t(BinaryConsts::RefNull)
-    << binaryHeapType(curr->type.getHeapType());
+  o << int8_t(BinaryConsts::RefNull);
+  parent.writeHeapType(curr->type.getHeapType());
 }
 
 void BinaryInstWriter::visitRefIsNull(RefIsNull* curr) {
@@ -1784,69 +1932,116 @@ void BinaryInstWriter::visitI31Get(I31Get* curr) {
     << U32LEB(curr->signed_ ? BinaryConsts::I31GetS : BinaryConsts::I31GetU);
 }
 
+void BinaryInstWriter::visitCallRef(CallRef* curr) {
+  o << int8_t(curr->isReturn ? BinaryConsts::RetCallRef
+                             : BinaryConsts::CallRef);
+}
+
 void BinaryInstWriter::visitRefTest(RefTest* curr) {
   o << int8_t(BinaryConsts::GCPrefix) << U32LEB(BinaryConsts::RefTest);
-  WASM_UNREACHABLE("TODO (gc): ref.test");
+  parent.writeHeapType(curr->ref->type.getHeapType());
+  parent.writeHeapType(curr->getCastType().getHeapType());
 }
 
 void BinaryInstWriter::visitRefCast(RefCast* curr) {
   o << int8_t(BinaryConsts::GCPrefix) << U32LEB(BinaryConsts::RefCast);
-  WASM_UNREACHABLE("TODO (gc): ref.cast");
+  parent.writeHeapType(curr->ref->type.getHeapType());
+  parent.writeHeapType(curr->getCastType().getHeapType());
 }
 
 void BinaryInstWriter::visitBrOnCast(BrOnCast* curr) {
-  o << int8_t(BinaryConsts::GCPrefix) << U32LEB(BinaryConsts::BrOnCast);
-  WASM_UNREACHABLE("TODO (gc): br_on_cast");
+  o << int8_t(BinaryConsts::GCPrefix) << U32LEB(BinaryConsts::BrOnCast)
+    << U32LEB(getBreakIndex(curr->name));
+  parent.writeHeapType(curr->ref->type.getHeapType());
+  parent.writeHeapType(curr->getCastType().getHeapType());
 }
 
 void BinaryInstWriter::visitRttCanon(RttCanon* curr) {
   o << int8_t(BinaryConsts::GCPrefix) << U32LEB(BinaryConsts::RttCanon);
-  WASM_UNREACHABLE("TODO (gc): rtt.canon");
+  parent.writeHeapType(curr->type.getRtt().heapType);
 }
 
 void BinaryInstWriter::visitRttSub(RttSub* curr) {
   o << int8_t(BinaryConsts::GCPrefix) << U32LEB(BinaryConsts::RttSub);
-  WASM_UNREACHABLE("TODO (gc): rtt.sub");
+  // FIXME: the binary format may also have an extra heap type and index that
+  //        are not needed
+  parent.writeHeapType(curr->type.getRtt().heapType);
 }
 
 void BinaryInstWriter::visitStructNew(StructNew* curr) {
-  WASM_UNREACHABLE("TODO (gc): struct.new");
+  o << int8_t(BinaryConsts::GCPrefix);
+  if (curr->isWithDefault()) {
+    o << U32LEB(BinaryConsts::StructNewDefaultWithRtt);
+  } else {
+    o << U32LEB(BinaryConsts::StructNewWithRtt);
+  }
+  parent.writeHeapType(curr->rtt->type.getHeapType());
 }
 
 void BinaryInstWriter::visitStructGet(StructGet* curr) {
-  WASM_UNREACHABLE("TODO (gc): struct.get");
+  const auto& heapType = curr->ref->type.getHeapType();
+  const auto& field = heapType.getStruct().fields[curr->index];
+  int8_t op;
+  if (field.type != Type::i32 || field.packedType == Field::not_packed) {
+    op = BinaryConsts::StructGet;
+  } else if (curr->signed_) {
+    op = BinaryConsts::StructGetS;
+  } else {
+    op = BinaryConsts::StructGetU;
+  }
+  o << int8_t(BinaryConsts::GCPrefix) << U32LEB(op);
+  parent.writeHeapType(heapType);
+  o << U32LEB(curr->index);
 }
 
 void BinaryInstWriter::visitStructSet(StructSet* curr) {
   o << int8_t(BinaryConsts::GCPrefix) << U32LEB(BinaryConsts::StructSet);
-  WASM_UNREACHABLE("TODO (gc): struct.set");
+  parent.writeHeapType(curr->ref->type.getHeapType());
+  o << U32LEB(curr->index);
 }
 
 void BinaryInstWriter::visitArrayNew(ArrayNew* curr) {
-  WASM_UNREACHABLE("TODO (gc): array.new");
+  o << int8_t(BinaryConsts::GCPrefix);
+  if (curr->isWithDefault()) {
+    o << U32LEB(BinaryConsts::ArrayNewDefaultWithRtt);
+  } else {
+    o << U32LEB(BinaryConsts::ArrayNewWithRtt);
+  }
+  parent.writeHeapType(curr->rtt->type.getHeapType());
 }
 
 void BinaryInstWriter::visitArrayGet(ArrayGet* curr) {
-  WASM_UNREACHABLE("TODO (gc): array.get");
+  auto heapType = curr->ref->type.getHeapType();
+  const auto& field = heapType.getArray().element;
+  int8_t op;
+  if (field.type != Type::i32 || field.packedType == Field::not_packed) {
+    op = BinaryConsts::ArrayGet;
+  } else if (curr->signed_) {
+    op = BinaryConsts::ArrayGetS;
+  } else {
+    op = BinaryConsts::ArrayGetU;
+  }
+  o << int8_t(BinaryConsts::GCPrefix) << U32LEB(op);
+  parent.writeHeapType(heapType);
 }
 
 void BinaryInstWriter::visitArraySet(ArraySet* curr) {
   o << int8_t(BinaryConsts::GCPrefix) << U32LEB(BinaryConsts::ArraySet);
-  WASM_UNREACHABLE("TODO (gc): array.set");
+  parent.writeHeapType(curr->ref->type.getHeapType());
 }
 
 void BinaryInstWriter::visitArrayLen(ArrayLen* curr) {
   o << int8_t(BinaryConsts::GCPrefix) << U32LEB(BinaryConsts::ArrayLen);
-  WASM_UNREACHABLE("TODO (gc): array.len");
+  parent.writeHeapType(curr->ref->type.getHeapType());
 }
 
 void BinaryInstWriter::emitScopeEnd(Expression* curr) {
   assert(!breakStack.empty());
   breakStack.pop_back();
-  if (func && !sourceMap) {
-    parent.writeExtraDebugLocation(curr, func, BinaryLocations::End);
-  }
   o << int8_t(BinaryConsts::End);
+  if (func && !sourceMap) {
+    parent.writeDebugLocationEnd(curr, func);
+  }
 }
 
 void BinaryInstWriter::emitFunctionEnd() { o << int8_t(BinaryConsts::End); }
@@ -1875,7 +2070,8 @@ void BinaryInstWriter::mapLocalsAndEmitHeader() {
     o << U32LEB(func->getNumVars());
     for (Index i = varStart; i < varEnd; i++) {
       mappedLocals[std::make_pair(i, 0)] = i;
-      o << U32LEB(1) << binaryType(func->getLocalType(i));
+      o << U32LEB(1);
+      parent.writeType(func->getLocalType(i));
     }
     return;
   }
@@ -1904,7 +2100,8 @@ void BinaryInstWriter::mapLocalsAndEmitHeader() {
   setScratchLocals();
   o << U32LEB(numLocalsByType.size());
   for (auto& typeCount : numLocalsByType) {
-    o << U32LEB(typeCount.second) << binaryType(typeCount.first);
+    o << U32LEB(typeCount.second);
+    parent.writeType(typeCount.first);
   }
 }
 
