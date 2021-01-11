@@ -13,4 +13,13 @@ import Data.Word (Word32)
 import Foreign (Storable)
 
 newtype Index = Index Word32
-  deriving newtype (Enum, Eq, Integral, Num, Show, Storable)
+  deriving newtype
+    ( Enum,
+      Eq,
+      Integral,
+      Num,
+      Ord,
+      Real,
+      Show,
+      Storable
+    )
