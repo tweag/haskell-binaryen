@@ -1,10 +1,11 @@
 { sources ? import ./nix/sources.nix { }
-, binaryenOverlay ? import ./nix/binaryenOverlay.nix
 , haskellNix ? import sources.haskell-nix { }
-, nixpkgsSrc ? haskellNix.sources.nixpkgs-2009
-, nixpkgsArgs ? haskellNix.nixpkgsArgs // { overlays = haskellNix.nixpkgsArgs.overlays ++ [ binaryenOverlay ]; }
-, pkgs ? import nixpkgsSrc nixpkgsArgs
-, ghc ? "ghc8102"
+, pkgs ? import sources.nixpkgs (haskellNix.nixpkgsArgs // {
+    overlays = haskellNix.nixpkgsArgs.overlays ++ [
+      (import ./nix/binaryen.nix)
+    ];
+  })
+, ghc ? "ghc8104"
 , systemBinaryen ? true
 }: pkgs.haskell-nix.cabalProject {
   src = pkgs.haskell-nix.haskellLib.cleanGit {

@@ -1,7 +1,0 @@
-resolver: lts-16.28
-
-nix:
-  path:
-    - nixpkgs=./nix/nixpkgs.nix
-  packages:
-    - binaryen
