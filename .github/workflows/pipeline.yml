@@ -15,6 +15,10 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
+        ghc:
+          - ghc8104
+          - ghc884
+          - ghc865
     steps:
 
       - name: checkout
@@ -35,28 +39,11 @@ jobs:
           extraPullNames: niv
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
 
-      - name: test
+      - name: test-nix-shell
         run: |
-          nix run -f . --arg systemBinaryen true -i binaryen.components.tests.test -c test
-          nix run -f . --arg systemBinaryen false -i binaryen.components.tests.test -c test
+          nix-shell --pure --keep-going --argstr ghc ${{ matrix.ghc }} --run "cabal v2-run test"
 
-  cabal-windows:
-    name: cabal-windows
-    runs-on: windows-latest
-    steps:
-
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: setup-haskell
-        uses: haskell/actions/setup@v1
-        with:
-          ghc-version: 8.10.4
-          cabal-version: 3.4.0.0
-
-      - name: test
-        run: |
-          C:\msys64\msys2_shell.cmd -mingw64 -defterm -full-path -here -no-start -c "cabal v2-run binaryen:test"
+          nix-shell --pure --keep-going --argstr ghc ${{ matrix.ghc }} --run "haskell-language-server typecheck"
 
   sdist:
     name: sdist
@@ -83,7 +70,7 @@ jobs:
 
       - name: sdist
         run: |
-          nix-shell --pure --run "cabal check && cabal v2-sdist all"
+          nix-shell --pure --keep-going --run "cabal check && cabal v2-sdist all"
 
       - name: upload-artifact
         uses: actions/upload-artifact@v2
@@ -116,7 +103,7 @@ jobs:
 
       - name: haddock
         run: |
-          nix-shell --pure --run "cabal v2-haddock --flags=system-binaryen --extra-include-dirs=\$binaryenIncludeDir --extra-lib-dirs=\$binaryenLibDir --haddock-for-hackage --haddock-hyperlink-source --haddock-quickjump all"
+          nix-shell --pure --keep-going --run "cabal v2-haddock --haddock-for-hackage --haddock-hyperlink-source --haddock-quickjump all"
 
       - name: upload-artifact
         uses: actions/upload-artifact@v2

@@ -22,6 +22,7 @@
       cabal-fmt = "latest";
       hindent = "latest";
       hlint = "latest";
+      hpack = "latest";
       ormolu = "latest";
       stylish-haskell = "latest";
     }) ++ [
@@ -40,13 +41,5 @@
     pkgs.nixpkgs-fmt
   ];
 
-  buildInputs = with pkgs.haskellPackages; [
-    pkgs.binaryen
-  ];
-
   exactDeps = true;
-
-  binaryenIncludeDir = "${pkgs.binaryen}/include";
-
-  binaryenLibDir = "${pkgs.binaryen}/lib";
 }
