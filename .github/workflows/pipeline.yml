@@ -7,7 +7,7 @@ on:
 jobs:
 
   nix:
-    name: nix-${{ matrix.os }}
+    name: nix-${{ matrix.os }}-${{ matrix.ghc }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
